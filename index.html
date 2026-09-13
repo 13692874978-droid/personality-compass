@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="一款手机端大五人格自我探索工具，通过 50 道选择题生成个体特质、潜在优势、成长建议与职业环境参考。">
+  <title>人格罗盘｜大五人格与职业环境探索</title>
+  <style>
+    :root {
+      --ink: #17231f;
+      --muted: #63716b;
+      --paper: #f5f7f2;
+      --surface: #ffffff;
+      --line: #d9e1da;
+      --forest: #174b3b;
+      --mint: #a8d7c3;
+      --lime: #d6e594;
+      --amber: #e7b35d;
+      --coral: #d97862;
+      --blue: #5884a3;
+      --shadow: 0 20px 50px rgba(31, 61, 49, 0.11);
+      --radius: 22px;
+      --sans: "Avenir Next", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      --serif: "Songti SC", "STSong", "Noto Serif SC", serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(rgba(23, 75, 59, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(23, 75, 59, 0.025) 1px, transparent 1px),
+        var(--paper);
+      background-size: 28px 28px;
+      font-family: var(--sans);
+      line-height: 1.65;
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid rgba(231, 179, 93, 0.55); outline-offset: 3px; }
+    a { color: var(--forest); }
+    .shell { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(18px);
+      background: rgba(245, 247, 242, 0.88);
+      border-bottom: 1px solid rgba(23, 75, 59, 0.10);
+    }
+    .header-inner { min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: 0.05em; }
+    .brand-mark { width: 34px; height: 34px; border: 1px solid var(--forest); border-radius: 50%; display: grid; place-items: center; }
+    .brand-mark svg { width: 22px; height: 22px; }
+    .header-meta { color: var(--muted); font-size: 13px; }
+    .view { display: none; min-height: calc(100vh - 68px); }
+    .view.active { display: block; }
+    .hero { padding: 86px 0 72px; overflow: hidden; }
+    .hero-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(320px, .85fr); align-items: center; gap: 72px; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 10px; color: var(--forest); font-size: 13px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+    .eyebrow::before { content: ""; width: 30px; height: 2px; background: var(--amber); }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin: 22px 0 24px; font-family: var(--serif); font-size: clamp(46px, 7vw, 84px); line-height: 1.04; letter-spacing: -0.045em; font-weight: 800; }
+    h1 em { color: var(--forest); font-style: normal; position: relative; white-space: nowrap; }
+    h1 em::after { content: ""; position: absolute; left: 0; right: 0; bottom: 5px; height: 10px; background: var(--lime); z-index: -1; transform: rotate(-1deg); }
+    .hero-copy { max-width: 680px; font-size: 18px; color: #44534d; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 32px 0 18px; }
+    .trust-note { display: flex; align-items: center; gap: 9px; color: #44534d; font-size: 14px; margin: 0 0 22px; }
+    .trust-note::before { content: ""; width: 18px; height: 18px; flex: 0 0 auto; border: 1px solid var(--forest); border-radius: 50%; background: radial-gradient(circle, var(--forest) 0 3px, transparent 4px); }
+    .btn { min-height: 48px; border-radius: 999px; padding: 0 22px; border: 1px solid var(--forest); transition: transform .18s ease, background .18s ease, color .18s ease; display: inline-flex; align-items: center; justify-content: center; gap: 9px; text-decoration: none; font-weight: 750; }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-primary { background: var(--forest); color: white; box-shadow: 0 9px 22px rgba(23, 75, 59, .18); }
+    .btn-secondary { background: transparent; color: var(--forest); }
+    .btn-quiet { border-color: var(--line); background: var(--surface); color: var(--ink); }
+    .btn-danger { border-color: #b05c4c; color: #8f3e32; background: #fff8f6; }
+    .hero-facts { display: flex; flex-wrap: wrap; gap: 18px 28px; color: var(--muted); font-size: 13px; }
+    .fact { display: flex; align-items: center; gap: 8px; }
+    .fact-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--amber); }
+    .compass-wrap { position: relative; min-height: 500px; display: grid; place-items: center; }
+    .orbit { position: absolute; border: 1px solid rgba(23, 75, 59, .15); border-radius: 50%; animation: spin 24s linear infinite; }
+    .orbit.one { width: 430px; height: 430px; }
+    .orbit.two { width: 335px; height: 335px; animation-direction: reverse; animation-duration: 18s; }
+    .orbit::after { content: ""; position: absolute; width: 15px; height: 15px; border-radius: 50%; background: var(--amber); top: 11%; left: 12%; box-shadow: 0 0 0 9px rgba(231, 179, 93, .13); }
+    .compass { width: 285px; aspect-ratio: 1; border-radius: 50%; background: var(--forest); color: white; display: grid; place-items: center; box-shadow: var(--shadow); position: relative; }
+    .compass::before, .compass::after { content: ""; position: absolute; background: rgba(255,255,255,.21); }
+    .compass::before { width: 1px; height: 78%; }
+    .compass::after { width: 78%; height: 1px; }
+    .needle { width: 82px; height: 152px; clip-path: polygon(50% 0, 100% 100%, 50% 75%, 0 100%); background: linear-gradient(90deg, var(--amber) 50%, #f1d29b 50%); transform: rotate(18deg); filter: drop-shadow(0 8px 8px rgba(0,0,0,.18)); }
+    .compass-label { position: absolute; font-size: 12px; letter-spacing: .16em; opacity: .78; }
+    .compass-label.n { top: 22px; } .compass-label.s { bottom: 20px; } .compass-label.e { right: 19px; } .compass-label.w { left: 19px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .outcome-strip { background: var(--ink); color: #eff4f0; padding: 44px 0; }
+    .outcome-flow { display: flex; flex-wrap: wrap; gap: 28px; }
+    .outcome-item { flex: 1 1 220px; min-width: 0; }
+    .outcome-item small { color: var(--lime); font-weight: 800; letter-spacing: .12em; }
+    .outcome-item h3 { margin: 10px 0 6px; font-size: 18px; }
+    .outcome-item p { margin: 0; color: #b9c6c0; font-size: 14px; }
+    .section { padding: 72px 0; }
+    .section-heading { max-width: 760px; margin-bottom: 34px; }
+    .section-heading h2 { font-family: var(--serif); font-size: clamp(34px, 5vw, 54px); line-height: 1.1; margin: 10px 0 16px; }
+    .section-heading p { color: var(--muted); }
+    .principles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+    .principle { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px; }
+    .principle strong { display: block; margin-bottom: 8px; }
+    .principle p { color: var(--muted); font-size: 14px; margin: 0; }
+    .quiz-shell { width: min(760px, calc(100% - 40px)); padding: 28px 0 64px; }
+    .quiz-progress { margin-bottom: 16px; }
+    .progress-meta { display: flex; justify-content: space-between; gap: 16px; color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+    .micro-progress { width: 100%; height: 4px; border-radius: 999px; background: #dfe7e1; overflow: hidden; }
+    .micro-progress-fill { width: 0; height: 100%; border-radius: inherit; background: var(--forest); transition: width .25s ease; }
+    .quiz-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .quiz-card-head { padding: 24px 30px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .quiz-card-head span { color: var(--muted); font-size: 13px; }
+    .question-area { padding: 42px 42px 30px; }
+    .question-number { color: var(--forest); font-size: 13px; font-weight: 800; letter-spacing: .13em; }
+    .question-text { font-family: var(--serif); font-size: clamp(27px, 4vw, 40px); line-height: 1.28; margin: 18px 0 36px; min-height: 105px; }
+    .scale-labels { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; margin-bottom: 12px; }
+    .answer-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+    .answer-btn { min-height: 82px; border: 1px solid var(--line); border-radius: 14px; background: #fbfcfa; color: var(--ink); transition: .18s ease; padding: 10px 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
+    .answer-btn strong { display: block; font-size: 19px; }
+    .answer-btn span { font-size: 12px; color: var(--muted); }
+    .answer-hint { font-size: 10px; color: var(--muted); opacity: .65; line-height: 1.3; }
+    .answer-btn:hover { border-color: var(--forest); background: #f2f8f4; transform: translateY(-2px); }
+    .answer-btn.selected { background: var(--forest); border-color: var(--forest); color: white; }
+    .answer-btn.selected span { color: rgba(255,255,255,.78); }
+    .quiz-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 22px 30px 30px; }
+    .auto-hint { color: var(--muted); font-size: 12px; letter-spacing: .03em; }
+    .quiz-help { margin-top: 18px; color: var(--muted); font-size: 13px; }
+    .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); background: var(--ink); color: white; border-radius: 999px; padding: 12px 18px; opacity: 0; pointer-events: none; transition: .25s ease; z-index: 40; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    .report { padding: 38px 0 90px; }
+    .report-hero { background: var(--forest); color: white; border-radius: 28px; padding: 52px; position: relative; overflow: hidden; }
+    .report-hero::after { content: ""; width: 280px; height: 280px; border: 1px solid rgba(255,255,255,.22); border-radius: 50%; position: absolute; right: -70px; top: -92px; box-shadow: 0 0 0 55px rgba(255,255,255,.035), 0 0 0 110px rgba(255,255,255,.025); }
+    .report-hero .eyebrow { color: var(--lime); }
+    .report-hero h1 { font-size: clamp(40px, 6vw, 70px); max-width: 800px; margin-bottom: 18px; }
+    .report-hero p { max-width: 720px; color: #d6e2dc; font-size: 17px; }
+    .report-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; position: relative; z-index: 2; }
+    .report-actions .btn { border-color: rgba(255,255,255,.52); color: white; background: transparent; }
+    .report-actions .btn:hover { background: rgba(255,255,255,.10); }
+    .report-actions .btn-primary { background: white; color: var(--forest); }
+    .report-actions .btn-primary:hover { background: #f3f7f4; }
+    .report-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(300px, .8fr); gap: 24px; margin-top: 24px; }
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 28px; }
+    .panel h2 { font-family: var(--serif); font-size: 30px; margin-bottom: 8px; }
+    .panel-intro { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+    .trait-list { display: grid; gap: 18px; }
+    .trait-row { display: grid; grid-template-columns: 110px minmax(0,1fr) 46px; gap: 14px; align-items: center; }
+    .trait-label strong { display: block; }
+    .trait-label span { color: var(--muted); font-size: 11px; }
+    .bar { height: 12px; background: #e9eeea; border-radius: 999px; overflow: hidden; position: relative; }
+    .bar::after { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: rgba(23,35,31,.22); }
+    .bar-fill { height: 100%; border-radius: inherit; background: var(--forest); width: 0; transition: width .7s ease; }
+    .trait-value { font-weight: 800; text-align: right; }
+    .full { grid-column: 1 / -1; }
+    .narrative-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+    .narrative { padding: 20px 0; border-top: 1px solid var(--line); }
+    .narrative h3 { font-size: 16px; margin-bottom: 7px; }
+    .narrative p { color: #4f5d57; font-size: 14px; margin: 0; }
+    .career-overview { margin-bottom: 16px; padding: 24px; border-radius: 18px; background: var(--forest); color: white; overflow: hidden; position: relative; }
+    .career-overview::after { content: ""; position: absolute; width: 180px; height: 180px; border: 1px solid rgba(255,255,255,.14); border-radius: 50%; right: -58px; top: -86px; box-shadow: 0 0 0 34px rgba(255,255,255,.025); }
+    .career-overview h3 { margin: 0 0 6px; font-size: 21px; position: relative; z-index: 1; }
+    .career-overview > p { margin: 0 0 18px; color: #d5e3dc; font-size: 14px; max-width: 760px; position: relative; z-index: 1; }
+    .career-overview-grid { display: flex; flex-wrap: wrap; gap: 10px; position: relative; z-index: 1; }
+    .career-overview-item { flex: 1 1 180px; min-width: 0; padding: 14px 15px; border: 1px solid rgba(255,255,255,.16); border-radius: 13px; background: rgba(255,255,255,.07); }
+    .career-overview-item small { display: block; color: var(--lime); font-size: 11px; font-weight: 800; letter-spacing: .08em; margin-bottom: 4px; }
+    .career-overview-item strong { display: block; font-size: 15px; line-height: 1.45; }
+    .career-overview-item span { display: block; color: #cbdad3; font-size: 12px; line-height: 1.5; margin-top: 4px; }
+    .career-list { display: grid; gap: 14px; }
+    .job-card { border: 1px solid var(--line); border-radius: 18px; padding: 22px; display: grid; grid-template-columns: 52px minmax(0,1fr); gap: 16px; align-items: start; background: var(--surface); }
+    .job-rank { width: 52px; aspect-ratio: 1; border-radius: 14px; background: var(--forest); color: white; display: grid; place-items: center; font-weight: 850; font-size: 16px; }
+    .job-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 7px; }
+    .job-card h3 { margin: 0; font-size: 18px; line-height: 1.35; }
+    .job-subtitle { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; font-weight: 500; }
+    .job-fit-badge { flex: 0 0 auto; min-height: 28px; display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; background: #e8f3ec; color: var(--forest); font-size: 11px; font-weight: 800; white-space: nowrap; }
+    .job-card .job-daily { color: #46544e; font-size: 14px; margin: 0 0 13px; line-height: 1.65; }
+    .job-section-label { margin: 12px 0 7px; color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: .07em; }
+    .job-core-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    .job-core { flex: 1 1 150px; min-width: 0; padding: 10px 11px; border-radius: 11px; background: #f4f7f4; }
+    .job-core-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; }
+    .job-core-top strong { font-size: 12px; }
+    .job-core-top span { color: var(--forest); font-size: 11px; font-weight: 750; }
+    .job-core-meter { height: 5px; border-radius: 999px; background: #dfe7e1; overflow: hidden; margin-top: 7px; }
+    .job-core-meter i { display: block; height: 100%; border-radius: inherit; background: var(--forest); }
+    .job-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .job-chip { display: inline-flex; align-items: center; min-height: 26px; padding: 2px 9px; background: #f0f4f1; border: 1px solid #e1e8e3; border-radius: 999px; color: #43534c; font-size: 11px; }
+    .job-chip.niche { background: #fdf3e7; border-color: #f0dcb8; color: #8a5d16; }
+    .job-insight-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 9px; margin-top: 13px; }
+    .job-insight { padding: 13px 14px; border-radius: 12px; background: #fafbf9; border: 1px solid #e5ebe6; }
+    .job-insight strong { display: block; color: var(--forest); font-size: 12px; margin-bottom: 4px; }
+    .job-insight p { margin: 0; color: #4f5d57; font-size: 12px; line-height: 1.6; }
+    .job-tryout { margin-top: 10px; padding: 13px 14px; border-radius: 12px; background: #fff8ec; border: 1px solid #eedcb8; color: #5f4b27; font-size: 12px; line-height: 1.6; }
+    .job-tryout strong { color: #7b581d; }
+    .dev-advice { background: #f7faf8; border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; margin-top: 14px; }
+    .dev-advice h4 { margin: 0 0 8px; font-size: 14px; color: var(--forest); }
+    .dev-advice ul { margin: 0; padding-left: 18px; color: #4f5d57; font-size: 13px; }
+    .dev-advice li { margin-bottom: 5px; }
+    .development-list { counter-reset: plan; display: grid; gap: 16px; }
+    .development-item { counter-increment: plan; display: grid; grid-template-columns: 42px minmax(0,1fr); gap: 14px; align-items: start; }
+    .development-item::before { content: counter(plan); width: 36px; height: 36px; border-radius: 10px; background: var(--lime); display: grid; place-items: center; font-weight: 850; }
+    .development-item strong { display: block; margin-bottom: 4px; }
+    .development-item p { color: var(--muted); font-size: 14px; margin: 0; }
+    .quality-box { display: flex; gap: 14px; align-items: flex-start; padding: 18px; background: #f4f7f4; border-radius: 14px; color: #46544e; font-size: 14px; }
+    .quality-mark { width: 28px; height: 28px; flex: 0 0 auto; border-radius: 50%; background: var(--forest); color: white; display: grid; place-items: center; font-weight: 900; }
+    .muted { color: var(--muted); }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    .radar-wrap { display: flex; justify-content: center; padding: 8px 0 4px; }
+    .radar-svg { width: 100%; max-width: 460px; height: auto; }
+    .radar-label { font-size: 11px; fill: var(--ink); font-weight: 600; }
+    .radar-score { font-size: 10px; fill: var(--forest); font-weight: 800; }
+    .ability-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-top: 8px; }
+    .ability-card { border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; background: var(--surface); }
+    .ability-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .ability-card-head strong { font-size: 15px; }
+    .ability-tag { font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 999px; letter-spacing: .04em; }
+    .ability-tag.strength { background: #e8f3ec; color: var(--forest); }
+    .ability-tag.growth { background: #fdf3e7; color: #9a6b1f; }
+    .ability-tag.mid { background: #f0f4f1; color: var(--muted); }
+    .ability-card p { color: #4f5d57; font-size: 13px; margin: 0; line-height: 1.6; }
+    .ability-bar-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+    .ability-bar-row .bar { flex: 1; height: 6px; }
+    .ability-bar-row .bar-fill { background: var(--forest); }
+    .ability-bar-row span { font-size: 11px; color: var(--muted); min-width: 28px; text-align: right; }
+    @media (max-width: 900px) {
+      .hero-grid, .report-grid { grid-template-columns: 1fr; }
+      .compass-wrap { min-height: 390px; }
+      .orbit.one { width: 350px; height: 350px; }
+      .orbit.two { width: 275px; height: 275px; }
+      .compass { width: 230px; }
+    }
+    @media (max-width: 680px) {
+      body:has(#quizView.active) .site-header { display: none; }
+      .shell { width: min(100% - 24px, 1180px); }
+      .header-meta { display: none; }
+      .hero { padding-top: 44px; padding-bottom: 44px; }
+      h1 { font-size: 46px; }
+      .hero-grid { gap: 24px; }
+      .compass-wrap { min-height: 280px; }
+      .orbit.one { width: 260px; height: 260px; }
+      .orbit.two { width: 210px; height: 210px; }
+      .compass { width: 175px; }
+      .needle { transform: scale(.7) rotate(18deg); }
+      .outcome-strip { padding: 34px 0; }
+      .quiz-shell { width: min(100% - 24px, 760px); padding-top: 12px; padding-bottom: 92px; }
+      .quiz-progress { margin-bottom: 10px; }
+      .progress-meta { margin-bottom: 5px; }
+      .quiz-card-head, .question-area, .quiz-actions { padding-left: 16px; padding-right: 16px; }
+      .quiz-card-head { padding-top: 12px; padding-bottom: 12px; }
+      .question-area { padding-top: 18px; padding-bottom: 16px; }
+      .question-text { min-height: 70px; font-size: 25px; margin: 12px 0 18px; }
+      .answer-grid { grid-template-columns: 1fr; gap: 7px; }
+      .answer-btn { min-height: 48px; display: flex; flex-direction: row; align-items: center; justify-content: space-between; padding: 6px 14px; gap: 8px; }
+      .answer-btn strong { font-size: 15px; }
+      .answer-hint { display: none; }
+      .scale-labels { display: none; }
+      .quiz-actions { position: fixed; left: 12px; right: 12px; bottom: max(10px, env(safe-area-inset-bottom)); z-index: 24; padding: 8px 14px; border: 1px solid rgba(23,75,59,.16); border-radius: 18px; background: rgba(245,247,242,.94); backdrop-filter: blur(18px); box-shadow: 0 12px 30px rgba(23,75,59,.16); }
+      .quiz-actions .btn { padding-left: 16px; padding-right: 16px; }
+      .progress-meta, .quiz-card-head span, .question-number, .auto-hint, .quiz-help { font-size: 14px; }
+      .answer-btn span { font-size: 14px; }
+      .report-hero { padding: 34px 24px; }
+      .panel { padding: 22px 18px; }
+      .trait-row { grid-template-columns: 82px minmax(0,1fr) 38px; gap: 9px; }
+      .career-overview { padding: 20px 16px; }
+      .career-overview-grid { flex-direction: column; }
+      .career-overview-item { flex-basis: auto; }
+      .job-card { grid-template-columns: 40px minmax(0,1fr); gap: 11px; padding: 17px 14px; }
+      .job-rank { width: 40px; border-radius: 11px; font-size: 14px; }
+      .job-card-head { flex-direction: column; gap: 7px; }
+      .job-fit-badge { align-self: flex-start; }
+      .job-core { flex-basis: 100%; }
+      .job-insight-grid { grid-template-columns: 1fr; }
+      .job-card .job-daily, .job-insight p, .job-tryout { font-size: 14px; }
+      .job-chip, .job-fit-badge, .job-core-top, .job-core-top strong, .job-core-top span, .job-section-label { font-size: 12px; }
+    }
+    @media print {
+      .site-header, .report-actions, #homeView, #quizView { display: none !important; }
+      body { background: white; }
+      .shell { width: 100%; }
+      .view { min-height: 0; }
+      #reportView { display: block !important; }
+      .report { padding: 0; }
+      .report-hero { border-radius: 0; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .panel { break-inside: avoid; box-shadow: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="shell header-inner">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor"/><path d="M14.8 8.1l-1.7 5-5 1.7 1.7-5 5-1.7z" fill="currentColor"/></svg>
+        </span>
+        人格罗盘
+      </div>
+      <div class="header-meta">50 道题 · 约 8–12 分钟 · 十项行为倾向线索 · 自动保存</div>
+    </div>
+  </header>
+
+  <main>
+    <section id="homeView" class="view active" aria-labelledby="homeTitle">
+      <div class="hero">
+        <div class="shell hero-grid">
+          <div>
+            <div class="eyebrow">Personality compass</div>
+            <h1 id="homeTitle">不是给你贴标签，<br>而是找到你的<em>使用说明</em></h1>
+            <p class="hero-copy">用 50 道选择题看见你的大五人格倾向，并得到关于工作方式、潜在优势、成长重点与职业环境的个体化建议。</p>
+            <div class="hero-actions">
+              <button class="btn btn-primary" id="startBtn">开始测试</button>
+            </div>
+            <p class="trust-note">完全免费，无需注册；完成 50 题后直接生成完整报告。</p>
+            <div class="hero-facts">
+              <span class="fact"><span class="fact-dot"></span>一次只回答一题</span>
+              <span class="fact"><span class="fact-dot"></span>进度自动保存</span>
+              <span class="fact"><span class="fact-dot"></span>约 8–12 分钟</span>
+            </div>
+          </div>
+          <div class="compass-wrap" aria-hidden="true">
+            <div class="orbit one"></div>
+            <div class="orbit two"></div>
+            <div class="compass">
+              <span class="compass-label n">OPEN</span>
+              <span class="compass-label e">ACT</span>
+              <span class="compass-label s">FEEL</span>
+              <span class="compass-label w">THINK</span>
+              <div class="needle"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="outcome-strip">
+        <div class="shell outcome-flow" aria-label="你将获得的内容">
+          <article class="outcome-item"><small>看见倾向</small><h3>五项人格 + 十项行为倾向</h3><p>用清晰的连续分数和雷达图呈现你的相对倾向，不把你压缩成单一标签。</p></article>
+          <article class="outcome-item"><small>理解自己</small><h3>行为模式与潜力</h3><p>解释你的工作方式、协作偏好、压力反应和可能更自然的优势，附具体成长建议。</p></article>
+          <article class="outcome-item"><small>采取行动</small><h3>岗位匹配与发展建议</h3><p>从 40+ 具体岗位中匹配与你行为倾向重合的方向，给出可操作的小实验和扬长避短建议。</p></article>
+        </div>
+      </div>
+      <div class="section">
+        <div class="shell">
+          <div class="section-heading">
+            <div class="eyebrow">Before you begin</div>
+            <h2>按真实的日常状态作答</h2>
+            <p>不要选择“理想中的自己”，也不必过度思考。人格倾向会随生活阶段、角色与近期状态有所变化；本次结果适合用来观察和讨论，不用于心理诊断、招聘筛选或替代真实职业体验。</p>
+          </div>
+          <div class="principles">
+            <article class="principle"><strong>没有正确答案</strong><p>选择更符合你多数时候表现的选项。</p></article>
+            <article class="principle"><strong>可以随时返回</strong><p>选择后会自动进入下一题；也可以返回上一题修改，刷新后仍会保留进度。</p></article>
+            <article class="principle"><strong>结果需要验证</strong><p>把报告与具体经历、他人反馈和职业小实验放在一起看。</p></article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="quizView" class="view" aria-labelledby="quizTitle">
+      <div class="quiz-shell">
+        <div class="quiz-progress" aria-label="答题进度">
+          <div class="progress-meta"><span id="progressCount">已完成 0 / 50</span><span id="progressPercent">0%</span></div>
+          <div class="micro-progress"><div class="micro-progress-fill" id="progressFill"></div></div>
+        </div>
+        <div class="quiz-card">
+          <div class="quiz-card-head"><span id="quizTitle">请按“现在通常的你”作答</span><span>没有正确答案</span></div>
+          <div class="question-area">
+            <div class="question-number" id="questionNumber">第 1 题，共 50 题</div>
+            <h2 class="question-text" id="questionText"></h2>
+            <div class="scale-labels"><span>非常符合</span><span>非常不符合</span></div>
+            <div class="answer-grid" id="answerGrid" role="radiogroup" aria-label="选择符合程度"></div>
+          </div>
+          <div class="quiz-actions">
+            <button class="btn btn-quiet" id="prevBtn">← 上一题</button>
+            <span class="auto-hint">选择后自动进入下一题</span>
+          </div>
+        </div>
+        <p class="quiz-help">凭第一反应选择即可。答案与进度会自动保存在当前浏览器。</p>
+      </div>
+    </section>
+
+    <section id="reportView" class="view" aria-labelledby="reportTitle">
+      <div class="shell report">
+        <div class="report-hero">
+          <div class="eyebrow">Your personal field guide</div>
+          <h1 id="reportTitle">你的个人特质报告</h1>
+          <p id="reportSummary"></p>
+          <div class="report-actions">
+            <button class="btn btn-primary" id="printBtn">打印 / 存为 PDF</button>
+            <button class="btn" id="copyBtn">复制摘要</button>
+            <button class="btn" id="restartBtn">重新测试</button>
+          </div>
+        </div>
+
+        <div class="report-grid">
+          <section class="panel full" aria-labelledby="bigFiveTitle">
+            <h2 id="bigFiveTitle">你的大五人格</h2>
+            <p class="panel-intro">五个分数展示你在本次作答中的相对倾向。它们没有好坏之分，也不是在人群中的排名。</p>
+            <div class="trait-list" id="traitList"></div>
+            <div id="bigFiveDetail" style="margin-top:20px;"></div>
+          </section>
+
+          <section class="panel full" aria-labelledby="abilityTitle">
+            <h2 id="abilityTitle">你的十项工作方式与潜力线索</h2>
+            <p class="panel-intro">这些维度由大五题项进一步分组得到，用来观察较自然的行为偏好，不是独立验证的能力测验，也不代表真实技能水平。</p>
+            <div class="radar-wrap"><div id="radarChart"></div></div>
+            <div class="ability-grid" id="abilityGrid"></div>
+          </section>
+
+          <section class="panel full" aria-labelledby="interpretTitle">
+            <h2 id="interpretTitle">你的个人使用说明</h2>
+            <p class="panel-intro">从特质组合出发，说明可能更自然的行动方式与需要留意的另一面。</p>
+            <div class="narrative-grid" id="narrativeGrid"></div>
+          </section>
+
+          <section class="panel full" aria-labelledby="careerTitle">
+            <h2 id="careerTitle">与你的工作方式较为重合的岗位</h2>
+            <p class="panel-intro">先看职业主线，再看具体岗位。以下结果比较的是你较自然的行为倾向与岗位日常任务，不衡量专业技能、经验、价值观、薪资、准入资格或现实机会，不能作为胜任判断。</p>
+            <div id="careerOverview"></div>
+            <div class="career-list" id="careerList"></div>
+            <div class="dev-advice" id="careerAdvice"></div>
+          </section>
+
+          <section class="panel" aria-labelledby="developmentTitle">
+            <h2 id="developmentTitle">30 天验证计划</h2>
+            <p class="panel-intro">不要只收藏报告；用低成本行动验证哪些描述真的适合你。</p>
+            <div class="development-list" id="developmentList"></div>
+          </section>
+          <section class="panel" aria-labelledby="qualityTitle">
+            <h2 id="qualityTitle">结果提醒</h2>
+            <p class="panel-intro">把报告当作一个观察起点，而不是固定结论；生活阶段、角色与近期状态都可能让分数发生变化。</p>
+            <div class="quality-box" id="qualityBox"></div>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+  (function () {
+    'use strict';
+    try {
+      var STORAGE_KEY = 'personality-compass-ipip50-v1';
+      var dims = {
+        E: { name: '外向性', english: 'Extraversion', low: '内省', high: '外向' },
+        A: { name: '宜人性', english: 'Agreeableness', low: '质疑', high: '共情' },
+        C: { name: '尽责性', english: 'Conscientiousness', low: '灵活', high: '有序' },
+        S: { name: '情绪稳定性', english: 'Emotional stability', low: '敏感', high: '稳定' },
+        O: { name: '开放性', english: 'Openness', low: '务实', high: '探索' }
+      };
+      var abilityDims = [
+        { key:'social',   name:'社交主动性',   english:'Social Initiative',   qids:[1,11,21,31,46],   high:'主动发起', low:'静观其变', desc:'在人群中主动开启对话、拓展连接的自然倾向。' },
+        { key:'express',  name:'表达与存在感', english:'Expressiveness',      qids:[6,16,26,36,41],   high:'乐于表达', low:'低调内敛', desc:'愿意成为关注中心、主动表达观点的程度。' },
+        { key:'empathy',  name:'共情与人际洞察', english:'Empathy',           qids:[2,17,27,42,47],   high:'敏锐共情', low:'理性抽离', desc:'感知、理解和回应他人情绪与处境的能力。' },
+        { key:'altruism', name:'人际兴趣与利他', english:'Interpersonal Interest', qids:[7,12,22,32,37], high:'乐于利他', low:'独立取向', desc:'对他人本身的兴趣，以及愿意为他人投入时间的倾向。' },
+        { key:'planning', name:'计划与条理性', english:'Planning & Order',    qids:[3,8,18,28,33],    high:'井然有序', low:'灵活随性', desc:'提前规划、维持秩序和条理的自然偏好。' },
+        { key:'execution',name:'执行与尽责',   english:'Execution & Duty',    qids:[13,23,38,43,48],  high:'可靠交付', low:'弹性应变', desc:'关注细节、完成任务、坚守承诺和质量标准的倾向。' },
+        { key:'stress',   name:'压力耐受',     english:'Stress Resilience',   qids:[4,9,14,24,44],    high:'从容应对', low:'易受扰动', desc:'在压力、担忧和外界干扰下保持状态的能力。' },
+        { key:'emotion',  name:'情绪稳定性',   english:'Emotional Stability', qids:[19,29,34,39,49],  high:'心境平稳', low:'情绪敏感', desc:'情绪起伏的频率和强度，以及从低落中恢复的速度。' },
+        { key:'creativity',name:'创新与想象力', english:'Creativity & Imagination', qids:[15,25,30,45,50], high:'创意丰沛', low:'务实落地', desc:'产生新想法、运用想象和反思事物意义的倾向。' },
+        { key:'analysis', name:'分析与学习能力', english:'Analysis & Learning', qids:[5,10,20,35,40],   high:'敏于求知', low:'经验导向', desc:'理解抽象概念、快速学习新事物和运用精确语言的能力。' }
+      ];
+      var questions = [
+        ['我是聚会或集体活动中很活跃的人','E',1],
+        ['我很少关心别人的感受与处境','A',-1],
+        ['我通常会提前做好准备','C',1],
+        ['我很容易感到压力过大','S',-1],
+        ['我拥有丰富的词汇和表达方式','O',1],
+        ['我平时话不多','E',-1],
+        ['我对了解不同的人感兴趣','A',1],
+        ['我常把自己的物品随手乱放','C',-1],
+        ['大多数时候，我能保持放松','S',1],
+        ['我理解抽象概念时常感到困难','O',-1],
+        ['和许多人在一起时，我通常感觉自在','E',1],
+        ['我有时会用尖锐的话伤害别人','A',-1],
+        ['我会留意事情的细节','C',1],
+        ['我经常为各种事情担心','S',-1],
+        ['我有生动的想象力','O',1],
+        ['我更愿意待在不显眼的位置','E',-1],
+        ['我能体会并关心他人的感受','A',1],
+        ['我常把事情弄得杂乱无章','C',-1],
+        ['我很少陷入低落情绪','S',1],
+        ['我对抽象观点不太感兴趣','O',-1],
+        ['我经常主动开启对话','E',1],
+        ['别人的问题通常不会引起我的兴趣','A',-1],
+        ['该做的日常任务，我通常会尽快完成','C',1],
+        ['外界的小事很容易扰乱我的状态','S',-1],
+        ['我常能提出有价值的新点子','O',1],
+        ['我经常觉得自己没什么可说的','E',-1],
+        ['我容易对别人产生同情与怜惜','A',1],
+        ['我经常忘记把东西放回原处','C',-1],
+        ['我很容易感到不安或沮丧','S',-1],
+        ['我的想象力不算丰富','O',-1],
+        ['在聚会中，我会和许多不同的人交谈','E',1],
+        ['我对他人本身没有太大兴趣','A',-1],
+        ['我喜欢秩序井然','C',1],
+        ['我的心情变化比较频繁','S',-1],
+        ['我通常能很快理解新事物','O',1],
+        ['我不喜欢成为别人注意的焦点','E',-1],
+        ['我愿意为别人腾出时间','A',1],
+        ['我有时会逃避自己应尽的责任','C',-1],
+        ['我的情绪常有明显起伏','S',-1],
+        ['我会使用较复杂或精确的词语','O',1],
+        ['我不介意成为关注的中心','E',1],
+        ['我能感受到别人的情绪变化','A',1],
+        ['我通常会按照计划行事','C',1],
+        ['我很容易感到烦躁','S',-1],
+        ['我会花时间反思事情的意义','O',1],
+        ['面对陌生人时，我通常比较安静','E',-1],
+        ['我能让身边的人感到放松自在','A',1],
+        ['我对自己的工作质量要求严格','C',1],
+        ['我经常感到低落','S',-1],
+        ['我的脑海里常常充满想法','O',1]
+      ].map(function(q, i){ return { id: i + 1, text: q[0], dim: q[1], key: q[2] }; });
+      var answerOptions = [
+        { label: '非常符合', value: 5, hint: '几乎总是如此' },
+        { label: '比较符合', value: 4, hint: '多数时候如此' },
+        { label: '不确定', value: 3, hint: '介于两者之间' },
+        { label: '比较不符合', value: 2, hint: '多数时候不是' },
+        { label: '非常不符合', value: 1, hint: '几乎从不如此' }
+      ];
+      var state = { current: 0, answers: new Array(50).fill(null) };
+
+      var jobDatabase = [
+        {name:'前端工程师',field:'科技与互联网',niche:false,daily:'根据设计稿与产品需求，用代码把网页/界面实现出来，并在浏览器兼容、性能与交互细节上反复调试优化。',high:['analysis','execution','creativity'],low:['social','altruism'],reason:'前端要在新框架层出不穷的环境里持续学习，并把界面一点点调对，分析力与落地精度是日常；工作多为独立编码排错。'},
+        {name:'数据分析师',field:'科技与互联网',niche:false,daily:'取数清洗、搭建指标体系，用报表和专题分析回答业务"为什么涨/跌"。',high:['analysis','planning','execution'],low:['social','creativity'],reason:'日常围绕取数、清洗、归因和出报告，条理性与分析力是基本功；主要产出是文档和图表。'},
+        {name:'用户研究员',field:'科技与互联网',niche:true,daily:'通过访谈、可用性测试、问卷与行为数据，理解用户真实动机与痛点，输出可落地的洞察报告。',high:['empathy','analysis','express'],low:['creativity','social'],reason:'要在访谈中捕捉用户"没说出口"的动机，共情与洞察是核心，还要把结论讲给产品/研发听。'},
+        {name:'技术文档工程师',field:'科技与互联网',niche:true,daily:'与开发/产品沟通，把复杂技术功能写成准确易懂的用户手册、API 文档和接入指南。',high:['analysis','planning','execution'],low:['social','creativity'],reason:'要快速吃透代码与接口逻辑，再翻译成用户能照做的步骤，分析力与条理性决定文档质量。'},
+        {name:'SRE 运维工程师',field:'科技与互联网',niche:false,daily:'维护线上系统稳定性，盯监控告警、处理故障、做容量规划与自动化运维。',high:['stress','analysis','execution'],low:['social','creativity'],reason:'线上故障和随时响起的告警要求冷静快速止损，压力耐受是硬要求；要读监控、定位根因。'},
+        {name:'品牌策划',field:'创意与内容',niche:false,daily:'制定品牌定位与传播策略，统筹 campaign 的创意方向、调性与投放节奏。',high:['creativity','express','social'],low:['execution','analysis'],reason:'核心是想出能打动人的概念，并提案说服客户与老板，创意和表现力主导。'},
+        {name:'交互设计师',field:'创意与内容',niche:false,daily:'设计产品的操作流程、页面跳转与交互细节，画原型并跟进研发落地。',high:['creativity','empathy','analysis'],low:['social','execution'],reason:'要站在用户视角设计"下一步点哪里"，想象使用场景与理清逻辑是核心。'},
+        {name:'文案撰稿',field:'创意与内容',niche:false,daily:'根据 brief 撰写 slogan、品牌故事、广告或推文，并按反馈反复改稿。',high:['creativity','express','empathy'],low:['social','analysis'],reason:'要写出让人愿意读、有情绪的文字，靠想象力和对读者情绪的体察；主要是独立写作。'},
+        {name:'声音设计师',field:'创意与内容',niche:true,daily:'为游戏/影视设计并制作音效、环境声与配音，剪辑混音并落地到项目中。',high:['creativity','execution','analysis'],low:['social','empathy'],reason:'要为角色脚步、界面提示设计独特声音，想象力主导；还要用专业音频软件精修混音。'},
+        {name:'信息设计师',field:'创意与内容',niche:true,daily:'把复杂的数据、流程与说明转化为清晰易读的图表、信息图与可视化版式。',high:['analysis','creativity','planning'],low:['social','empathy'],reason:'先要理清数据与逻辑结构，再排成一眼看懂的图形，分析力与排版条理性并重。'},
+        {name:'产品经理',field:'商业与管理',niche:false,daily:'挖掘用户与业务需求、排定优先级，协调设计与研发把产品做出来并迭代。',high:['social','express','planning'],low:['execution','creativity'],reason:'每天在多方间拉齐需求、争取资源、推动排期，靠主动沟通与表达；做的是决策与协调。'},
+        {name:'商务拓展 BD',field:'商业与管理',niche:false,daily:'寻找并谈判合作机会，对接外部伙伴，推进签约与落地。',high:['social','express','empathy'],low:['execution','analysis'],reason:'核心是主动约见客户、察言观色、谈成合作，社交与人际洞察主导。'},
+        {name:'管理咨询顾问',field:'商业与管理',niche:false,daily:'驻场调研客户企业，做行业与数据分析，输出战略/流程优化方案并向高层汇报。',high:['analysis','express','stress'],low:['social','creativity'],reason:'要在短时间内吃透陌生行业、快速建模并向客户高层汇报，学习力与抗压是硬要求。'},
+        {name:'商业分析师',field:'商业与管理',niche:false,daily:'分析经营数据与市场趋势，为业务决策提供量化建议与预测。',high:['analysis','planning','express'],low:['social','creativity'],reason:'围绕经营指标做归因、预测与测算，分析力是核心，结论还要写成报告讲给业务听。'},
+        {name:'客户成功经理',field:'商业与管理',niche:true,daily:'持续跟进签约客户的使用情况，做培训、答疑、风险预警并推动续费增购。',high:['empathy','social','emotion'],low:['creativity','analysis'],reason:'要让客户觉得被理解、用得好并愿意续费，必须持续主动联系，并能承接投诉与催促。'},
+        {name:'课程设计师',field:'教育与培训',niche:true,daily:'把专家知识拆解成有教学逻辑的课程、课件与练习，对接讲师并跟进上线效果。',high:['planning','analysis','empathy'],low:['social','creativity'],reason:'要按教学设计方法把零散知识拆成循序渐进的学习路径，条理性与对学习者难点的体察是关键。'},
+        {name:'企业培训师',field:'教育与培训',niche:false,daily:'设计并交付内训课程，现场授课、引导互动、评估培训效果。',high:['express','social','empathy'],low:['execution','creativity'],reason:'要站在台上把内容讲活、调动学员，表现欲与现场掌控力主导；核心是授课与互动。'},
+        {name:'教育顾问',field:'教育与培训',niche:false,daily:'接待咨询、评估学生情况，推荐课程/升学方案并促成报名，跟进学习进度。',high:['social','empathy','express'],low:['creativity','analysis'],reason:'主要靠主动接待、揣摩家长与学生诉求、给出方案并促单；是沟通销售型岗位。'},
+        {name:'学习体验设计师',field:'教育与培训',niche:true,daily:'优化线上学习产品的交互流程与学习活动设计，让学员愿意学、学得进。',high:['empathy','creativity','analysis'],low:['social','execution'],reason:'要基于用户调研设计讨论、闯关、项目式学习等活动，洞察学习者动机并重创意。'},
+        {name:'健康管理师',field:'医疗与健康',niche:false,daily:'采集客户健康数据、做风险评估，制定并随访个性化健康干预方案。',high:['empathy','altruism','execution'],low:['creativity','social'],reason:'要长期陪伴客户把饮食运动方案落实、耐心随访，利他与责任心是底色。'},
+        {name:'心理咨询师',field:'医疗与健康',niche:false,daily:'通过一对一访谈倾听来访者，评估心理状态并进行咨询干预。',high:['empathy','emotion','altruism'],low:['social','creativity'],reason:'要在保密关系中容纳来访者情绪、准确共情，情绪稳定与利他动机至关重要。'},
+        {name:'医学编辑',field:'医疗与健康',niche:true,daily:'检索核对医学文献，把专业临床/科普内容撰写、审校成准确易懂的文章或稿件。',high:['analysis','execution','planning'],low:['social','creativity'],reason:'要持续追新指南、逐条核对事实，学习力与严谨度决定内容安全；主要是案头写作。'},
+        {name:'康复治疗师',field:'医疗与健康',niche:false,daily:'为术后/功能障碍患者做评估，设计并指导物理/作业康复训练。',high:['empathy','execution','altruism'],low:['social','creativity'],reason:'要长期陪伴恢复期患者、按方案反复带训，耐心与利他是核心；操作有规范流程。'},
+        {name:'市场研究员',field:'研究与分析',niche:false,daily:'设计问卷、主持焦点小组，结合销售数据解读市场趋势并输出报告。',high:['analysis','empathy','planning'],low:['social','creativity'],reason:'要从问卷与访谈中提炼真实需求并用数据验证，分析力与对消费者的体察并重。'},
+        {name:'政策研究员',field:'研究与分析',niche:true,daily:'跟踪解读政策法规，分析其对行业/企业的影响，撰写研究报告与政策建议。',high:['analysis','planning','express'],low:['social','creativity'],reason:'要系统收集政策文件、推演影响链条并成文，学习力与条理性是核心。'},
+        {name:'数据科学家',field:'研究与分析',niche:false,daily:'构建统计/机器学习模型，挖掘数据规律，为业务提供预测与决策支持。',high:['analysis','creativity','execution'],low:['social','empathy'],reason:'日常是写代码、调模型、验证假设，深度分析与持续学习是命脉；多为独立研究。'},
+        {name:'情报分析师',field:'研究与分析',niche:true,daily:'多源搜集行业/竞争/技术情报，交叉验证后撰写研判报告与风险预警。',high:['analysis','planning','express'],low:['social','creativity'],reason:'要从零散信源中拼出可信图景、判断真伪并给出前瞻结论，分析力与条理性决定质量。'},
+        {name:'社区运营',field:'社会服务与运营',niche:false,daily:'维护用户社群，策划话题活动、处理反馈、提升活跃度与留存。',high:['social','empathy','creativity'],low:['analysis','emotion'],reason:'要主动在群里活跃气氛、洞察成员诉求并想点子促活，社交与创意主导。'},
+        {name:'项目协调员',field:'社会服务与运营',niche:false,daily:'跟踪项目进度、拉通各方对齐节点、整理会议纪要与风险台账。',high:['planning','execution','social'],low:['creativity','analysis'],reason:'核心是把多方任务盯到节点、记清事项并提醒到人，条理性与执行力是硬要求。'},
+        {name:'非营利组织项目经理',field:'社会服务与运营',niche:true,daily:'规划公益项目方案、申请资助、协调志愿者与资源、评估项目成效。',high:['altruism','planning','social'],low:['creativity','execution'],reason:'要为公共目标动员志愿者、争取资助并把项目落地，利他动机与项目管理能力并重。'},
+        {name:'用户运营',field:'社会服务与运营',niche:false,daily:'分层运营用户生命周期，做触达、促活、召回活动并监控转化数据。',high:['analysis','execution','empathy'],low:['social','creativity'],reason:'要盯留存转化数据、按生命周期设计触达动作并日复一日执行，分析力与落地度关键。'},
+        {name:'质量工程师',field:'工程与技术实操',niche:false,daily:'制定质量标准与检验流程，分析生产/产品缺陷原因并推动改进。',high:['analysis','planning','execution'],low:['social','creativity'],reason:'要用数据定位缺陷根因、按标准逐项检验，严谨与条理性决定质量。'},
+        {name:'供应链专员',field:'工程与技术实操',niche:false,daily:'跟进采购、库存与物流，协调交期、对账并处理异常缺货。',high:['planning','execution','stress'],low:['creativity','empathy'],reason:'要在交期波动中盯库存、催货、对账，条理性与抗压是日常；流程标准化。'},
+        {name:'测试工程师',field:'工程与技术实操',niche:false,daily:'设计并执行测试用例，复现、定位并跟踪缺陷直至修复。',high:['execution','analysis','planning'],low:['social','creativity'],reason:'要按用例逐条验证、不放过边缘场景，尽责与条理性是核心；工作细致重复。'},
+        {name:'技术支持工程师',field:'工程与技术实操',niche:false,daily:'接收客户/用户报障，远程排查软硬件问题并指导解决、沉淀知识库。',high:['analysis','empathy','emotion'],low:['creativity','social'],reason:'要耐着性子接电话、边安抚边定位故障，情绪稳定与沟通同理是关键。'},
+        {name:'独立插画师',field:'艺术与独立创作',niche:true,daily:'接稿、沟通需求，用手绘/数位工具完成插画作品并按反馈修改。',high:['creativity','execution','empathy'],low:['social','emotion'],reason:'核心是把文字需求变成独特画面，想象力与画技主导；多为独立创作、按稿交活。'},
+        {name:'播客制作人',field:'艺术与独立创作',niche:true,daily:'策划节目选题与嘉宾，录制、剪辑、配乐混音并上线分发。',high:['creativity','express','social'],low:['analysis','execution'],reason:'要策划有吸引力的选题、采访嘉宾并剪出好听的节目，创意与表达主导。'},
+        {name:'展览策划 / 策展人',field:'艺术与独立创作',niche:true,daily:'构思展览主题与叙事，联络艺术家与展品、设计展陈并统筹落地。',high:['creativity','social','planning'],low:['execution','empathy'],reason:'要把艺术作品串成有观点的叙事，并协调多方资源落地，创意与统筹并重。'},
+        {name:'字体设计师',field:'艺术与独立创作',niche:true,daily:'设计字库中的单个汉字字形，反复调整笔画比例、间距并统一整套风格。',high:['creativity','execution','planning'],low:['social','empathy'],reason:'要在成千上万字形里保持风格统一、精修每一画，耐心与审美主导；多为案头创作。'},
+        {name:'风控分析师',field:'金融与专业服务',niche:false,daily:'分析信贷/交易数据，识别风险特征，制定监测规则与模型。',high:['analysis','planning','emotion'],low:['social','creativity'],reason:'要从数据中识别潜在欺诈与坏账规律，分析力与严谨度决定风险敞口。'},
+        {name:'合规专员',field:'金融与专业服务',niche:false,daily:'解读监管法规，审查业务流程与合同，确保公司经营不越红线。',high:['planning','execution','analysis'],low:['social','creativity'],reason:'要逐条对照法规、审查流程留痕，严谨与条理性是底线；工作按规章办事。'},
+        {name:'税务顾问',field:'金融与专业服务',niche:false,daily:'帮客户/企业梳理税务方案、申报纳税、应对稽查与税务筹划。',high:['analysis','planning','execution'],low:['creativity','social'],reason:'要吃透税法变化、精确计算申报，学习力与条理性决定合规安全。'},
+        {name:'保险理赔师',field:'金融与专业服务',niche:true,daily:'接报案、查勘损失、审核理赔材料，核定赔付金额并向客户解释结论。',high:['empathy','analysis','execution'],low:['creativity','social'],reason:'要在客户情绪激动时核实事发材料、依条款判定赔付，既需同理也需冷静严谨。'}
+      ];
+      function rankAllJobs(abilityScores){
+        return jobDatabase.map(function(job){
+          var coreScores = job.high.map(function(k){ return abilityScores[k]||0; });
+          var coreFit = coreScores.reduce(function(s,v){ return s+v; },0) / coreScores.length;
+          var minCore = Math.min.apply(null, coreScores);
+          var fit = Math.round(coreFit * 0.65 + minCore * 0.35);
+          var weakestIndex = coreScores.indexOf(minCore);
+          return Object.assign({}, job, {fit:fit, coreScores:coreScores, weakestCore:job.high[weakestIndex]});
+        }).sort(function(a,b){ return b.fit - a.fit; });
+      }
+      function matchJobs(abilityScores){
+        var ranked = rankAllJobs(abilityScores);
+        var selected = ranked.slice(0,3).map(function(job){ return Object.assign({}, job, {recommendType:'核心推荐'}); });
+        var topFit = ranked[0] ? ranked[0].fit : 0;
+        var usedNames = selected.map(function(job){ return job.name; });
+        var usedFields = selected.map(function(job){ return job.field; });
+        ranked.forEach(function(job){
+          if (selected.length >= 5 || usedNames.indexOf(job.name) >= 0) return;
+          if (job.fit >= topFit - 12 && usedFields.indexOf(job.field) < 0) {
+            selected.push(Object.assign({}, job, {recommendType:'相邻探索'}));
+            usedNames.push(job.name); usedFields.push(job.field);
+          }
+        });
+        var niche = ranked.find(function(job){ return job.niche && usedNames.indexOf(job.name) < 0 && job.fit >= topFit - 15; });
+        if (niche && selected.length < 6) {
+          selected.push(Object.assign({}, niche, {recommendType:'小众探索'}));
+          usedNames.push(niche.name);
+        }
+        ranked.forEach(function(job){
+          if (selected.length >= 6 || usedNames.indexOf(job.name) >= 0) return;
+          selected.push(Object.assign({}, job, {recommendType:job.niche?'小众探索':'补充方向'}));
+          usedNames.push(job.name);
+        });
+        return selected.slice(0,6);
+      }
+      function fitLabel(fit){
+        if (fit >= 75) return '高度重合';
+        if (fit >= 60) return '较为重合';
+        if (fit >= 45) return '值得探索';
+        return '可了解';
+      }
+      function careerTryout(job){
+        var n = job.name;
+        if (/工程师|数据科学家/.test(n)) return '找一个公开小需求，投入 2–3 小时做出最小成品或测试记录，再观察你是否享受持续排错与迭代。';
+        if (/分析师|研究员|顾问|政策|情报|风控/.test(n)) return '选一个你熟悉的主题，用 90 分钟完成一页分析简报：问题、证据、结论、下一步各写一段。';
+        if (/设计师|插画师|文案|字体|声音|播客|策展/.test(n)) return '围绕同一个主题做一份小作品，并找 2 位目标用户反馈“是否看懂、是否被打动、哪里需要修改”。';
+        if (/培训师|教育顾问|课程|学习体验/.test(n)) return '把一个熟悉知识点做成 10 分钟微课，邀请 2–3 人试学，记录他们卡住和真正记住的地方。';
+        if (/心理咨询师|健康管理师|康复治疗师|医学编辑/.test(n)) return '先访谈一位合格从业者并了解准入、伦理与日常工作；不要把短期体验当作专业训练或执业替代。';
+        if (/产品经理|项目|运营|客户成功|商务拓展|供应链/.test(n)) return '挑一个现实小问题，写出目标、相关人、三步推进计划和复盘指标，并实际推动其中一步。';
+        return '找一位从业者做 30 分钟访谈，再选择一项最典型的日常任务做一次低成本模拟。';
+      }
+      function jobFriction(job, abilityScores){
+        var weakest = job.weakestCore;
+        var score = abilityScores[weakest] || 0;
+        if (score >= 65) return '三个核心工作线索均与你当前倾向较为接近；下一步更需要验证专业技能、兴趣与现实条件。';
+        if (score >= 45) return '“'+dimName(weakest)+'”是三项核心要求中相对较弱的一项，真实工作中要观察它是否会持续消耗你。';
+        return '岗位经常需要“'+dimName(weakest)+'”，而它在你的当前结果中相对较弱；可先用工具、流程或搭档补位，再决定是否长期投入。';
+      }
+      function careerOverviewData(jobs, abilityScores){
+        var fieldCount = {}, dimCount = {};
+        jobs.forEach(function(job){
+          fieldCount[job.field]=(fieldCount[job.field]||0)+1;
+          job.high.forEach(function(k){ dimCount[k]=(dimCount[k]||0)+1; });
+        });
+        var fields=Object.keys(fieldCount).sort(function(a,b){ return fieldCount[b]-fieldCount[a]; }).slice(0,3);
+        var coreDims=Object.keys(dimCount).sort(function(a,b){ return dimCount[b]-dimCount[a] || abilityScores[b]-abilityScores[a]; }).slice(0,3);
+        var topJob=jobs[0];
+        return {
+          title: fields.length>1 ? fields.slice(0,2).join(' × ') : fields[0],
+          fields: fields.join('、'),
+          dims: coreDims.map(dimName).join('、'),
+          anchor: topJob ? topJob.name+'（'+fitLabel(topJob.fit)+'）' : '暂无',
+          note: '在较为重合的方向之外，也保留跨领域和小众选项，帮助你比较不同工作环境，而不是过早把自己限定在同一类岗位。'
+        };
+      }
+
+      function $(id){ return document.getElementById(id); }
+      function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+      function save(){ try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {} }
+      function load(){
+        try {
+          var raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return;
+          var parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.answers) && parsed.answers.length === 50) {
+            state.answers = parsed.answers.map(function(v){ return v === null ? null : clamp(Number(v),1,5); });
+            state.current = clamp(Number(parsed.current) || 0, 0, 49);
+          }
+        } catch (e) {}
+      }
+      function showToast(message){
+        var el = $('toast');
+        if (!el) return;
+        el.textContent = message;
+        el.classList.add('show');
+        clearTimeout(showToast.timer);
+        showToast.timer = setTimeout(function(){ el.classList.remove('show'); }, 2200);
+      }
+      function route(name){
+        ['home','quiz','report'].forEach(function(view){
+          var el = $(view + 'View');
+          if (el) el.classList.toggle('active', view === name);
+        });
+        if (location.hash !== '#' + name) history.replaceState(null, '', '#' + name);
+        window.scrollTo(0, 0);
+        if (name === 'quiz') renderQuiz();
+        if (name === 'report') renderReport();
+        if (name === 'home') updateStartButton();
+      }
+      function answeredCount(){ return state.answers.filter(function(v){ return v !== null; }).length; }
+      function updateStartButton(){
+        var count = answeredCount();
+        $('startBtn').textContent = count > 0 && count < 50 ? '继续测试 · ' + count + '/50' : '开始测试';
+      }
+      function renderProgress(){
+        var count = answeredCount();
+        var pct = Math.round(count / 50 * 100);
+        $('progressPercent').textContent = pct + '%';
+        $('progressCount').textContent = '已完成 ' + count + ' / 50';
+        $('progressFill').style.width = pct + '%';
+      }
+      function renderQuiz(){
+        var q = questions[state.current];
+        $('questionNumber').textContent = '第 ' + q.id + ' 题，共 50 题';
+        $('questionText').textContent = q.text;
+        var grid = $('answerGrid');
+        grid.innerHTML = '';
+        answerOptions.forEach(function(opt){
+          var b = document.createElement('button');
+          b.className = 'answer-btn' + (state.answers[state.current] === opt.value ? ' selected' : '');
+          b.setAttribute('role','radio');
+          b.setAttribute('aria-checked', state.answers[state.current] === opt.value ? 'true' : 'false');
+          b.innerHTML = '<strong>' + opt.value + '</strong><span>' + opt.label + '</span><small class="answer-hint">' + opt.hint + '</small>';
+          b.addEventListener('click', function(){ selectAnswer(opt.value); });
+          grid.appendChild(b);
+        });
+        $('prevBtn').disabled = state.current === 0;
+        $('prevBtn').style.opacity = state.current === 0 ? '.45' : '1';
+        renderProgress();
+      }
+      var autoAdvanceTimer = null;
+      function cancelAutoAdvance(){ if (autoAdvanceTimer) { clearTimeout(autoAdvanceTimer); autoAdvanceTimer = null; } }
+      function selectAnswer(value){
+        cancelAutoAdvance();
+        state.answers[state.current] = value;
+        save();
+        renderQuiz();
+        autoAdvanceTimer = setTimeout(function(){
+          autoAdvanceTimer = null;
+          nextQuestion();
+        }, 380);
+      }
+      function nextQuestion(){
+        if (state.answers[state.current] === null) { showToast('请先选择本题答案'); return; }
+        if (state.current < 49) { state.current += 1; save(); renderQuiz(); return; }
+        var missing = state.answers.findIndex(function(v){ return v === null; });
+        if (missing >= 0) { state.current = missing; save(); renderQuiz(); showToast('还有未作答题目，已为你定位'); return; }
+        route('report');
+      }
+      function scoreAnswers(answers){
+        if (!Array.isArray(answers) || answers.length !== questions.length) throw new Error('答案数量必须为 50');
+        var sums = {E:0,A:0,C:0,S:0,O:0};
+        var counts = {E:0,A:0,C:0,S:0,O:0};
+        questions.forEach(function(q, i){
+          var raw = Number(answers[i]);
+          if (!Number.isFinite(raw) || raw < 1 || raw > 5) throw new Error('答案必须在 1 到 5 之间');
+          var keyed = q.key === 1 ? raw : 6 - raw;
+          sums[q.dim] += keyed;
+          counts[q.dim] += 1;
+        });
+        var result = {};
+        Object.keys(sums).forEach(function(k){
+          var mean = sums[k] / counts[k];
+          result[k] = Math.round((mean - 1) / 4 * 100);
+        });
+        return result;
+      }
+      function scoreAbilityDims(answers){
+        var result = {};
+        abilityDims.forEach(function(dim){
+          var sum = 0;
+          dim.qids.forEach(function(qid){
+            var idx = qid - 1;
+            var q = questions[idx];
+            var raw = Number(answers[idx]);
+            var keyed = q.key === 1 ? raw : 6 - raw;
+            sum += keyed;
+          });
+          var mean = sum / dim.qids.length;
+          result[dim.key] = Math.round((mean - 1) / 4 * 100);
+        });
+        return result;
+      }
+      var abilityInsight = {
+        social:   { high:'你在人群中容易自然地开启对话，拓展新连接对你来说不是消耗而是充电。这种主动性能让你更快获取信息、建立资源网络，但也要留意不是每个人都适应高频互动，给内向者留出空间会让连接更有质量。', low:'你更倾向先观察再行动，在熟悉的小圈子里深度交流比大范围社交更让你舒适。这不是缺陷——深度连接往往比浅社交更有价值。需要拓展人脉时，可以从"有明确主题的小型聚会"或"一对一约见"开始，降低启动成本。' },
+        express:  { high:'你不介意成为焦点，愿意主动表达观点和主张。这种存在感能让你的想法被看见、推动讨论向前。需要留意的是：表达的影响力不等于说服力，给不同意见留出回应空间，会让你的表达更有分量。', low:'你更倾向先听后说，在没有充分思考前不轻易表态。这种谨慎让你的观点往往更有质量，但也可能导致贡献被低估。可以尝试在会议前提前准备2-3个要点，在讨论早期就抛出来，不需要等"完全想好"。' },
+        empathy:  { high:'你对他人的情绪信号很敏锐，能快速感知到房间里的气氛变化。这种能力让你在协作、服务和领导场景中更容易建立信任。要留意的是：高共情也可能让你过度承担他人的情绪，需要学会区分"理解"和"负责"。', low:'你更倾向以理性和标准来处理人际问题，不容易被情绪裹挟。这种抽离能力在需要客观判断的场景中很有价值。可以练习的是：在给出解决方案之前，先花10秒钟确认对方的感受——"这件事让你挺受挫的吧"，理解本身就是一种支持。' },
+        altruism: { high:'你对人本身有真诚的兴趣，愿意为他人投入时间和精力。这种倾向让你容易被信任、被依赖，也容易在帮助他人中获得意义感。需要留意：不要把"被需要"等同于"有价值"，学会在适当的时候说不，才能持续地给予。', low:'你更看重独立和自洽，不太会主动介入他人的事务。这种边界感让你不容易被人际消耗，也能保持判断的客观性。可以尝试的小练习：每周主动问一位同事"最近有什么需要帮忙的"，不需要真的承担什么，表达关注本身就能改善连接。' },
+        planning: { high:'你天然喜欢有结构、有准备的状态，提前规划让你感到安心。这种能力在复杂项目和多任务场景中是核心优势。要留意的是：过度规划可能变成对不确定性的回避，给"计划外的好事"留出空间，比如每周留一个不安排任何事的下午。', low:'你更依赖临场判断和灵活调整，在变化快的环境中反而更舒展。这种适应性是宝贵的，但在需要长期交付的场景中可能会踩坑。可以从最小的结构开始：每天早上花3分钟写下今天最重要的一件事，不需要完整的计划。' },
+        execution:{ high:'你做事可靠、关注细节，答应的事通常会兑现。这种尽责性是职场中最被低估的核心能力之一——很多人能提出想法，但能稳定交付的人很少。要留意：不要让"把事做好"变成"什么都自己扛"，学会定义"足够好"的标准，把精力留给真正重要的事。', low:'你更擅长在压力下灵活应变，不太会被规则和流程束缚。这种弹性在创业和创新场景中很有价值。可以练习的是：为反复出现的任务建立一个"最小检查清单"（3-5项就够），不需要变成严格的流程，只是减少低级失误。' },
+        stress:   { high:'你在压力下相对从容，不容易被短期波动打乱节奏。这种稳定性在危机处理和高负荷环境中是锚点般的存在。要留意：从容不等于不需要恢复，长期高负荷下的"我没事"可能是延迟崩溃的前兆。把恢复写进日程，比如每天固定20分钟的无屏幕时间。', low:'你对压力和风险信号比较敏锐，这让你更容易提前发现问题——很多危机就是被"容易焦虑的人"先发现的。但这种敏锐也可能让你在不确定中过度消耗。可以尝试的是：把担心的事写下来，分成"我能控制的"和"我控制不了的"，只对前者制定行动。' },
+        emotion:  { high:'你的心境相对平稳，情绪起伏不大，从低落中恢复的速度也比较快。这种稳定性让你在长期项目中能保持一致的输出。要留意：情绪平稳不代表没有情绪，长期压抑的感受可能以身体不适的方式表达。可以练习每天用一个词标注自己的情绪，增加对内在状态的觉察。', low:'你的情绪体验比较丰富和敏感，对美好和痛苦的感受都比常人更深。这种深度是创造力和共情的重要来源，但也意味着你需要更主动地管理情绪波动。可以建立一个"情绪急救包"：列出3件每次做了都会让你好一点的小事，状态不好时直接执行，不需要思考。' },
+        creativity:{ high:'你的脑海里经常充满想法，容易在看似不相关的事物之间发现连接。这种创造力是创新和解决复杂问题的核心燃料。要留意：想法多不等于完成多，最有价值的创意往往需要被"约束"才能落地。可以给自己设一个规则：每个新想法先写下来，48小时后再决定是否投入，避免频繁切换。', low:'你更信任经过验证的方法和具体经验，不太会为了"创新"而创新。这种务实性在执行和落地阶段非常宝贵——很多好想法就是死在"不够务实"上。可以尝试的小练习：每周选一个日常工作流程，问自己"如果只能改一个地方，我改哪里"，不需要颠覆性创新，小改进累积起来就是大变化。' },
+        analysis: { high:'你喜欢理解事物的底层逻辑，学习新东西的速度比较快，也能运用比较精确的语言表达。这种分析能力在研究、策略和复杂决策中是核心优势。要留意：不要让"理解了"代替"行动了"，分析的价值在于指导决策，设一个"分析截止时间"会让你更高效。', low:'你更依赖实践经验和直觉判断，在"做"中学习比在"想"中学习更有效。这种动手能力在很多场景中比纯分析更有价值。可以尝试的是：遇到新概念时，先找一个具体的小例子来理解，而不是从定义开始——比如学一个新工具，先照着教程做一遍，再回头看原理。' }
+      };
+      function renderRadarChart(scores, containerId){
+        var container = $(containerId);
+        if (!container) return;
+        var size = 460, cx = size/2, cy = size/2, R = 118, n = abilityDims.length, levels = 5;
+        var pt = function(angle, r){ return [cx + r*Math.cos(angle), cy + r*Math.sin(angle)]; };
+        var ang = function(i){ return (i/n)*2*Math.PI - Math.PI/2; };
+        var svg = '';
+        for (var l=1; l<=levels; l++){
+          var r = R*l/levels, pts = [];
+          for (var i=0;i<n;i++){ var p=pt(ang(i),r); pts.push(p[0].toFixed(1)+','+p[1].toFixed(1)); }
+          svg += '<polygon points="'+pts.join(' ')+'" fill="none" stroke="#d9e1da" stroke-width="1"/>';
+        }
+        for (var i=0;i<n;i++){ var p=pt(ang(i),R); svg += '<line x1="'+cx+'" y1="'+cy+'" x2="'+p[0].toFixed(1)+'" y2="'+p[1].toFixed(1)+'" stroke="#d9e1da" stroke-width="1"/>'; }
+        var dataPts = [], dots = '';
+        for (var i=0;i<n;i++){
+          var dim = abilityDims[i], score = scores[dim.key]||0;
+          var p = pt(ang(i), R*score/100);
+          dataPts.push(p[0].toFixed(1)+','+p[1].toFixed(1));
+          dots += '<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="3.5" fill="#174b3b"/>';
+        }
+        svg += '<polygon points="'+dataPts.join(' ')+'" fill="rgba(23,75,59,0.15)" stroke="#174b3b" stroke-width="2"/>' + dots;
+        for (var i=0;i<n;i++){
+          var dim = abilityDims[i], score = scores[dim.key]||0;
+          var lp = pt(ang(i), R+24);
+          var anchor = Math.abs(Math.cos(ang(i)))<0.3 ? 'middle' : (Math.cos(ang(i))>0 ? 'start' : 'end');
+          svg += '<text x="'+lp[0].toFixed(1)+'" y="'+lp[1].toFixed(1)+'" text-anchor="'+anchor+'" dominant-baseline="middle" class="radar-label">'+dim.name+'<tspan class="radar-score" x="'+lp[0].toFixed(1)+'" dy="14">'+score+'</tspan></text>';
+        }
+        container.innerHTML = '<svg viewBox="0 0 '+size+' '+size+'" class="radar-svg" role="img" aria-label="十项工作方式与潜力线索雷达图">'+svg+'</svg>';
+      }
+      function abilityAnalysis(scores){
+        var sorted = abilityDims.slice().sort(function(a,b){ return scores[b.key]-scores[a.key]; });
+        var top = sorted.slice(0,3), bottom = sorted.slice(-2).reverse();
+        var items = [];
+        top.forEach(function(dim){
+          var tag = scores[dim.key]>=68 ? 'strength' : 'mid';
+          var tagText = scores[dim.key]>=68 ? '突出优势' : '相对偏强';
+          items.push({ dim:dim, score:scores[dim.key], tag:tag, tagText:tagText, text:abilityInsight[dim.key].high });
+        });
+        bottom.forEach(function(dim){
+          var tag = scores[dim.key]<=32 ? 'growth' : 'mid';
+          var tagText = scores[dim.key]<=32 ? '成长空间' : '相对偏弱';
+          items.push({ dim:dim, score:scores[dim.key], tag:tag, tagText:tagText, text:abilityInsight[dim.key].low });
+        });
+        return items;
+      }
+      function band(score){
+        if (score >= 68) return '偏高';
+        if (score <= 32) return '偏低';
+        return '中间';
+      }
+      function traitSentence(key, score){
+        var high = score >= 58, low = score <= 42;
+        var text = {
+          O: high ? '你更容易被新观点、复杂问题和想象空间吸引，通常愿意尝试新的理解方式。' : low ? '你更信任具体经验与已验证的方法，偏好清晰、实用和可落地的内容。' : '你能在新想法与现实可行性之间切换，通常会先判断情境再决定探索深度。',
+          C: high ? '你倾向于计划、完成和自我约束，对质量与承诺较为敏感。' : low ? '你更依赖现场判断与灵活调整，在变化快、自由度高的环境中可能更舒展。' : '你既能建立基本结构，也愿意为变化留出余地，执行方式通常随任务调整。',
+          E: high ? '互动与外部刺激更可能给你能量，你较容易主动表达并进入群体场景。' : low ? '独处与低刺激环境更有助于恢复能量，你通常先观察、思考，再决定是否表达。' : '你能在独处和社交之间调节，是否主动更多取决于人群、主题和当下精力。',
+          A: high ? '你较自然地关注关系、感受与合作氛围，通常愿意理解和照顾他人的立场。' : low ? '你更愿意保留质疑、直说问题并维护判断独立，不会仅为和谐而轻易让步。' : '你会在维护关系与坚持标准之间权衡，既不一味迎合，也不把分歧当作目的。',
+          S: high ? '面对压力时，你相对容易保持情绪稳定并恢复节奏，不太容易被短期波动牵着走。' : low ? '你对风险、冲突和压力信号较敏锐，可能更早发现问题，也更需要主动管理恢复。' : '你的压力反应处于中间范围，稳定程度通常受任务意义、负荷和支持条件影响。'
+        };
+        return text[key];
+      }
+      var bigFiveDetail = {
+        O: {
+          facets: ['想象力','审美感受','求知好奇','求新求变'],
+          highStrength: ['擅长在模糊和不确定中迅速提出多种可能性，是团队里的"概念发电机"','学习新领域、跨角色适应快，不容易被旧经验困住'],
+          highBlind: ['可能低估执行细节和重复劳动的价值，兴趣转移快，常留下"开了头没收尾"的项目','容易把"新"等同于"好"，对成熟方案的价值估计不足'],
+          lowStrength: ['专注、务实，能把一件事按部就班做到位，是流程和标准的可靠维护者','决策时不被新奇感牵着走，更看重成本、风险和已有的证据'],
+          lowBlind: ['面对需要范式切换的新环境时可能启动偏慢，容易把"我不习惯"误判成"这事不靠谱"','对抽象讨论和情感性话题容易不耐烦，可能错过"现在看不见但以后很重要"的信号'],
+          advice: ['给每个新想法设一个"72小时冷却+一句落地条件"：想到点子先记下来，三天后再问"第一步具体做什么"','每周挑一件你本能上会抗拒的"例行小事"完整做完，训练自己在重复中找价值','和一个务实型同事约定：聊完新点子后，让他追问你三个"那又怎样、成本多少、失败了怎么办"']
+        },
+        C: {
+          facets: ['秩序感','尽责守信','成就追求','自律审慎'],
+          highStrength: ['可靠交付、持续投入和守住承诺，通常会被多种工作环境重视','长期目标拆解能力强，能把宏大愿望翻译成每天的小动作'],
+          highBlind: ['可能陷入"准备综合征"——过度规划、过度完善，错过窗口','把标准绷得太紧，一旦计划被打乱就烦躁，长期下来是倦怠和完美主义的高风险人群'],
+          lowStrength: ['灵活、不被流程绑架，能在混乱和临时任务中迅速投入新方向','对权威和规则不那么钻牛角尖，愿意在必要时找变通'],
+          lowBlind: ['承诺兑现不稳定，容易高估"最后冲刺"的能力，关键节点掉链子','长期累积型工作（写作、健身、储蓄、关系维护）容易欠账，且常到很晚才发现'],
+          advice: ['把"宏大目标"改写成每天一个15分钟的固定微动作（如每天21:00写3行今日复盘），用惯性而不是意志力扛','每周五花10分钟，只做一件事：把下周三件必须交付的事写在便签上贴在显示器边上','给自己设一个"完成即停"规则：到了约定时间就交当前版本，用一周一次的小复盘代替无止境的打磨']
+        },
+        E: {
+          facets: ['乐群性','独断主张','活力水平','积极情绪'],
+          highStrength: ['在需要影响、沟通、带头的场景（管理、销售、对外协作）中天然占优','积极情绪具感染力，团队低落时你常常是先把气氛托起来的那个人'],
+          highBlind: ['可能高估自己在安静同事心里的受欢迎程度，习惯用"多说"代替"多听"','容易被即时反馈和热闹带走，深度独处的耐心不足，长期孤独型任务可能坐不住'],
+          lowStrength: ['善于倾听和深度专注，是团队里能把难题一个人啃下来的人','决策时较少被现场气氛带跑，更倾向于先想清楚再表态'],
+          lowBlind: ['在需要主动争取资源、向上汇报、公开表态的场合容易吃亏，功劳常被更外放的人拿走','同事可能误读你的沉默为冷漠或不支持，需要更主动地表达意见'],
+          advice: ['给自己设计"低耗电社交"节奏：连续两个强社交日之间，强制留一个完全独处的傍晚作为缓冲','每周在某个群/会议里主动发言一次，哪怕只是先写好一句话再发——把"主动表达"当成可以练的小肌肉','每天结束时花5分钟问自己："今天有哪个场合，我其实有想法但没说？"明天找一个低成本渠道补一句']
+        },
+        A: {
+          facets: ['信任','利他共情','顺从谦让','直率'],
+          highStrength: ['关系网修复力强，冲突中是天然的调停者，团队信任度高','在服务、教育、照护、长期协作类工作中，对方愿意把真实情况告诉你'],
+          highBlind: ['不擅长"为自己争取"，加薪、晋升、边界议题上容易吃亏','可能为了维持和谐而延后必要的冲突，导致问题攒到更大才爆'],
+          lowStrength: ['决策果断，敢做艰难取舍，在谈判、评审、绩效沟通中立场清晰','不容易被情绪绑架，能在大家都上头时指出事实'],
+          lowBlind: ['措辞容易被听成攻击，即便你逻辑对，也可能因为"太冲"而让信息被拒收','长期看，团队会觉得和你共事"心累"，关键关系容易在不知不觉中流失'],
+          advice: ['每次答应别人之前，给自己设一个24小时缓冲（除非紧急）：先回"我看一下日程，晚点回你"','每周做一次"我这周没说出口的真实想法"清单，挑一件在下次会议里用"我担心……"的句式讲出来','当你忍不住要顶回去时，先把句子拆成"事实+我的判断+我希望"三段再说']
+        },
+        S: {
+          facets: ['焦虑倾向','情绪波动','敏感自尊','压力脆弱性'],
+          highStrength: ['在高压、高不确定性岗位下表现稳定，是同事最想求助的人','决策时较少被恐慌驱动，能在众人上头时给出冷静判断'],
+          highBlind: ['可能低估自己和他人情绪信号的重要性，用"这没什么大不了"轻描淡写别人的痛苦','在需要"先共情再解决"的场景里，太快进入方案模式，会让关系受损'],
+          lowStrength: ['对风险和人际氛围的预警能力强，是团队里最早嗅到"哪里不对劲"的人','情绪细腻、记忆细节丰富，写作、咨询、用户研究等需要感受力的工作里常有独特产出'],
+          lowBlind: ['容易把一次性挫折泛化成"我不行"，睡眠、决策、人际关系都会被连带影响','在高压期可能出现"提前消耗"——事情还没到最坏，自己先被情绪磨掉了精力'],
+          advice: ['情绪上头时启动一个固定小动作（喝口水、出门走5分钟、在便签上写一句"我现在在怕什么"），给情绪一个10分钟的缓冲再回复重要消息','每天睡前花3分钟做"三件今天真实发生的事"清单，用来对抗大脑把一件小事放大成灾难的倾向','每周固定一次20分钟的"恢复活动"（散步、运动、见一个让你放松的人），把它当和开会一样不可取消的日程']
+        }
+      };
+      function comboNarratives(scores){
+        var items = [];
+        var high = function(k){ return scores[k] >= 62; };
+        var low = function(k){ return scores[k] <= 38; };
+        if (high('O') && high('C')) items.push(['潜在能力｜把新想法变成方案','你既愿意探索，也有较强的结构化倾向。适合把模糊问题拆成假设、路径与交付物；留意不要在“做得更完整”上投入过多。']);
+        else if (high('O') && low('C')) items.push(['潜在能力｜自由联想与快速试验','你可能擅长发现新连接、快速起草和跨界尝试。更有效的工作方式是用短周期、外部节点或协作者把灵感推到完成。']);
+        else if (low('O') && high('C')) items.push(['潜在能力｜可靠执行与持续优化','你可能擅长把规则、流程和标准落实到稳定结果。适合在明确目标下不断减少差错；也要为新方法留一个小规模试验窗口。']);
+        else items.push(['潜在能力｜情境适配','你既不会一味追新，也不会只守旧法。清楚定义“何时创新、何时复用”会让你的判断优势更稳定。']);
+
+        if (high('E') && high('A')) items.push(['协作方式｜主动连接','你通常容易建立互动并照顾合作体验，适合需要协调、引导和持续沟通的场景。难点是别为了维持气氛而承接过多。']);
+        else if (high('E') && low('A')) items.push(['协作方式｜直接推动','你可能更愿意公开表达、竞争和快速推进。把观点与人的价值分开，并给对方留出回应空间，会提升影响力。']);
+        else if (low('E') && high('A')) items.push(['协作方式｜安静支持','你可能更擅长一对一倾听、深度合作和稳定支持。重要场合可以提前准备观点，避免贡献因低曝光而被忽略。']);
+        else if (low('E') && low('A')) items.push(['协作方式｜独立判断','你倾向保留个人空间与批判性，可能适合独立承担清晰模块。主动同步关键节点，可以减少“做得对但对齐不足”。']);
+        else items.push(['协作方式｜情境切换','你会根据对象与任务调整表达和合作深度。明确什么时候需要主动推动、什么时候需要倾听，会比固定成某一种协作风格更有效。']);
+
+        if (high('S') && high('C')) items.push(['压力模式｜稳态推进','你在压力中可能仍能保持计划与节奏。风险是过度承担或低估疲劳；建议把恢复也写进计划，而不是等任务结束。']);
+        else if (low('S') && high('C')) items.push(['压力模式｜高标准警觉','你对风险和质量都比较敏感，容易提前预判问题，但也可能反复检查。给任务设定明确的“完成定义”和复核次数上限。']);
+        else if (low('S') && low('C')) items.push(['压力模式｜先稳住再拆解','高压与混乱叠加时，你可能更难启动或保持顺序。先降低刺激，再把下一步缩小到 15 分钟可完成的动作。']);
+        else if (high('S') && low('C')) items.push(['压力模式｜镇定应变','你在变化中可能较少被短期压力打乱，也愿意临场调整。为关键承诺加上检查点，可以避免镇定变成低估复杂度。']);
+        else items.push(['压力模式｜情境敏感','你的稳定与计划程度都处于中间范围，压力表现更可能取决于负荷、意义与支持条件。记录触发点比套用固定抗压标签更准确。']);
+
+        var values = Object.keys(scores).map(function(k){ return scores[k]; });
+        var spread = Math.max.apply(null, values) - Math.min.apply(null, values);
+        if (spread < 10) {
+          items.push(['成长杠杆｜辨认情境差异', '你的五个维度目前较为均衡，不宜强行区分“优势”和“短板”。更有价值的做法是记录自己在不同角色、压力水平和人际场景中的变化。']);
+        } else {
+          var top = Object.keys(scores).sort(function(a,b){ return scores[b]-scores[a]; })[0];
+          var bottom = Object.keys(scores).sort(function(a,b){ return scores[a]-scores[b]; })[0];
+          items.push(['成长杠杆｜让优势带动短板', '把“' + dims[top].name + '”当作你更自然的起点，同时为“' + dims[bottom].name + '”设计外部支持。目标不是把所有维度练到一样，而是减少关键场景中的失配。']);
+        }
+        return items;
+      }
+      function careerMatches(scores){ return matchJobs(scores); }
+      function developmentPlan(scores){
+        var sorted = Object.keys(scores).sort(function(a,b){ return scores[b]-scores[a]; });
+        var top = sorted[0], bottom = sorted[sorted.length-1];
+        var values = sorted.map(function(k){ return scores[k]; });
+        var balancedProfile = values[0] - values[values.length - 1] < 10;
+        var actions = {
+          O:'选一个陌生主题，完成一次 90 分钟探索，并写下 3 个可迁移到当前工作的观点。',
+          C:'选一项反复拖延的任务，定义完成标准、首个 15 分钟动作和截止节点。',
+          E:'安排一次有明确问题的一对一交流，观察互动前后的能量变化。',
+          A:'在一次分歧中先复述对方需求，再明确表达自己的边界与标准。',
+          S:'记录一周的压力触发点、身体信号和恢复动作，找到最有效的一种恢复方式。'
+        };
+        var first = balancedProfile ? ['观察情境变化','连续 7 天记录：独处/协作、明确/模糊、高压/低压场景下，哪一种行为最自然、哪一种最耗能。'] : ['验证你的优势', actions[top]];
+        var second = balancedProfile ? ['做一次偏好对照','为同一项小任务分别尝试“先计划后执行”和“边做边调整”，比较完成质量与能量消耗。'] : ['补一个关键支点', actions[bottom]];
+        return [
+          first,
+          second,
+          ['做一次职业小实验','从推荐环境中选一个方向，访谈 1 位从业者，询问日常任务、最难部分与真实评价标准。'],
+          ['月底回看','对照本报告写下“符合、部分符合、不符合”各 2 条，并记录哪些差异来自角色或情境。']
+        ];
+      }
+      function qualityMessage(answers){
+        var counts = [1,2,3,4,5].map(function(v){ return answers.filter(function(x){ return x===v; }).length; });
+        var max = Math.max.apply(null, counts);
+        var longest = 1, run = 1;
+        for (var i=1;i<answers.length;i++) { if (answers[i]===answers[i-1]) { run++; longest=Math.max(longest,run); } else run=1; }
+        if (max >= 38 || longest >= 18) return ['需谨慎解读','你的作答高度集中在同一选项，可能是稳定倾向，也可能是快速连选。建议休息后重测，并结合真实行为例子核对。'];
+        if (max >= 28 || longest >= 12) return ['中等','作答存在一定集中趋势。报告可用于自我观察，但请重点核对那些让你感到意外的结论。'];
+        return ['良好','选项分布没有显示明显的单一连选。仍请记住：自陈量表会受当下状态、角色情境与自我认知影响。'];
+      }
+      function dimName(key){
+        for (var i=0;i<abilityDims.length;i++){ if (abilityDims[i].key===key) return abilityDims[i].name; }
+        return key;
+      }
+      function renderReport(){
+        if (answeredCount() !== 50) { route('quiz'); showToast('完成全部题目后才能生成报告'); return; }
+        var scores = scoreAnswers(state.answers);
+        var abilityScores = scoreAbilityDims(state.answers);
+        var sorted = Object.keys(scores).sort(function(a,b){ return scores[b]-scores[a]; });
+        var top = sorted[0], second = sorted[1], bottom = sorted[4];
+        var spread = scores[top] - scores[bottom];
+        if (spread < 10) {
+          $('reportSummary').textContent = '你的五个维度目前较为均衡，暂无足够证据把某一项定义为突出优势或明显短板。更值得关注的是：不同任务、关系和压力水平会怎样改变你的行为。';
+        } else {
+          var topKeys = sorted.filter(function(k){ return scores[top] - scores[k] <= 3; });
+          var bottomKeys = sorted.filter(function(k){ return scores[k] - scores[bottom] <= 3; });
+          var topText = topKeys.slice(0,2).map(function(k){ return dims[k].high; }).join(' × ');
+          var topNames = topKeys.slice(0,2).map(function(k){ return dims[k].name; }).join('与');
+          var bottomNames = bottomKeys.map(function(k){ return dims[k].name; }).join('、');
+          var leadLabel = topKeys.length > 1 ? '你的相对突出组合是“' : '你的相对突出特质是“';
+          $('reportSummary').textContent = leadLabel + topText + '”。你更自然的优势可能从' + topNames + '中生长；而' + bottomNames + '相关场景更值得通过环境设计和具体练习来支持。';
+        }
+        var traitList = $('traitList'); traitList.innerHTML='';
+        ['O','C','E','A','S'].forEach(function(k){
+          var row=document.createElement('div'); row.className='trait-row';
+          row.innerHTML='<div class="trait-label"><strong>'+dims[k].name+'</strong><span>'+dims[k].english+' · '+band(scores[k])+'</span></div><div class="bar"><div class="bar-fill" style="width:'+scores[k]+'%"></div></div><div class="trait-value">'+scores[k]+'</div>';
+          traitList.appendChild(row);
+        });
+        var bfDetail = $('bigFiveDetail'); bfDetail.innerHTML='';
+        ['O','C','E','A','S'].forEach(function(k){
+          var d = bigFiveDetail[k];
+          var isHigh = scores[k] >= 55, isLow = scores[k] <= 45;
+          var strengths = isHigh ? d.highStrength : (isLow ? d.lowStrength : d.highStrength);
+          var blinds = isHigh ? d.highBlind : (isLow ? d.lowBlind : d.highBlind);
+          var pole = isHigh ? '偏高端' : (isLow ? '偏低端' : '中间偏'+(scores[k]>=50?'高':'低'));
+          var div = document.createElement('div');
+          div.className = 'narrative';
+          div.style.padding = '16px 0';
+          div.innerHTML = '<h3 style="font-size:15px;margin-bottom:6px;">'+dims[k].name+' · '+pole+' · 子面向：'+d.facets.join(' / ')+'</h3>'+
+            '<p style="color:#4f5d57;font-size:13px;margin:0 0 8px;"><strong style="color:var(--forest);">自然优势：</strong>'+strengths.join('；')+'</p>'+
+            '<p style="color:#4f5d57;font-size:13px;margin:0 0 8px;"><strong style="color:#9a6b1f;">需要留意：</strong>'+blinds.join('；')+'</p>'+
+            '<p style="color:#4f5d57;font-size:13px;margin:0;"><strong style="color:var(--ink);">可以试试：</strong>'+d.advice.join(' ')+'</p>';
+          bfDetail.appendChild(div);
+        });
+        renderRadarChart(abilityScores, 'radarChart');
+        var abilityGrid = $('abilityGrid'); abilityGrid.innerHTML='';
+        abilityAnalysis(abilityScores).forEach(function(item){
+          var card = document.createElement('div'); card.className='ability-card';
+          card.innerHTML = '<div class="ability-card-head"><strong>'+item.dim.name+'</strong><span class="ability-tag '+item.tag+'">'+item.tagText+'</span></div>'+
+            '<p>'+item.text+'</p>'+
+            '<div class="ability-bar-row"><div class="bar"><div class="bar-fill" style="width:'+item.score+'%"></div></div><span>'+item.score+'</span></div>';
+          abilityGrid.appendChild(card);
+        });
+        var narrative=$('narrativeGrid'); narrative.innerHTML='';
+        ['O','C','E','A','S'].forEach(function(k){
+          var article=document.createElement('article'); article.className='narrative';
+          article.innerHTML='<h3>'+dims[k].name+' · '+band(scores[k])+'</h3><p>'+traitSentence(k,scores[k])+'</p>';
+          narrative.appendChild(article);
+        });
+        comboNarratives(scores).forEach(function(item){
+          var article=document.createElement('article'); article.className='narrative';
+          article.innerHTML='<h3>'+item[0]+'</h3><p>'+item[1]+'</p>';
+          narrative.appendChild(article);
+        });
+        var careers=$('careerList'); careers.innerHTML='';
+        var matchedJobs = matchJobs(abilityScores);
+        var overview = careerOverviewData(matchedJobs, abilityScores);
+        $('careerOverview').innerHTML = '<div class="career-overview"><h3>你的职业探索主线：'+overview.title+'</h3><p>'+overview.note+'</p><div class="career-overview-grid">'+
+          '<div class="career-overview-item"><small>优先观察的领域</small><strong>'+overview.fields+'</strong><span>它们在本次推荐中出现较多，但不等于唯一选择。</span></div>'+
+          '<div class="career-overview-item"><small>反复出现的工作线索</small><strong>'+overview.dims+'</strong><span>这些是多个岗位共同依赖、也更值得用真实任务验证的行为倾向。</span></div>'+
+          '<div class="career-overview-item"><small>首个验证锚点</small><strong>'+overview.anchor+'</strong><span>先验证典型日常任务是否让你投入，而不是先认领职业名称。</span></div>'+
+          '</div></div>';
+        matchedJobs.forEach(function(job, i){
+          var article=document.createElement('article'); article.className='job-card';
+          var coreBlocks = job.high.map(function(k, idx){
+            var score = job.coreScores[idx];
+            return '<div class="job-core"><div class="job-core-top"><strong>'+dimName(k)+'</strong><span>'+score+' · '+(score>=68?'较自然':score>=45?'可调动':'需补位')+'</span></div><div class="job-core-meter"><i style="width:'+score+'%"></i></div></div>';
+          }).join('');
+          var lowChips = job.low.map(function(k){ return '<span class="job-chip">相对低依赖：'+dimName(k)+'</span>'; }).join('');
+          var nicheChip = job.niche ? '<span class="job-chip niche">小众方向</span>' : '';
+          article.innerHTML='<div class="job-rank">'+String(i+1).padStart(2,'0')+'</div><div>'+
+            '<div class="job-card-head"><h3>'+job.name+'<span class="job-subtitle">'+job.field+' · '+job.recommendType+'</span></h3><span class="job-fit-badge">'+fitLabel(job.fit)+'</span></div>'+
+            '<p class="job-daily"><strong>典型工作：</strong>'+job.daily+'</p>'+
+            '<div class="job-section-label">你的三项对应线索</div><div class="job-core-grid">'+coreBlocks+'</div>'+
+            '<div class="job-meta">'+nicheChip+lowChips+'</div>'+
+            '<div class="job-insight-grid"><div class="job-insight"><strong>为什么可能合拍</strong><p>'+job.reason+'</p></div><div class="job-insight"><strong>进入前重点验证</strong><p>'+jobFriction(job, abilityScores)+'</p></div></div>'+
+            '<div class="job-tryout"><strong>低成本试做：</strong>'+careerTryout(job)+'</div></div>';
+          careers.appendChild(article);
+        });
+        var adviceEl = $('careerAdvice');
+        var abItems = abilityAnalysis(abilityScores);
+        var topAbility = abItems[0];
+        var weakAbility = abItems[abItems.length-1];
+        adviceEl.innerHTML = '<h4>怎么使用这份岗位清单</h4><ul>'+
+          '<li><strong>先选任务，不先选头衔：</strong>从六个岗位中挑 2 个日常任务看起来最想尝试的方向，而不是只看名称、热门程度或“重合”标签。</li>'+
+          '<li><strong>一主一跨域：</strong>选择 1 个核心推荐和 1 个跨领域/小众方向，各做一次小实验，比较投入感、完成质量和恢复成本。</li>'+
+          '<li><strong>扬长：</strong>你的“'+topAbility.dim.name+'”倾向相对突出，可以优先承担需要这类工作方式的任务，并用作品、反馈或结果确认它能否转化为优势。</li>'+
+          '<li><strong>补位：</strong>“'+weakAbility.dim.name+'”倾向相对较弱；目标岗位若持续依赖它，可以通过练习、工具、流程或协作者支持，也可以选择依赖更低的工作环境。</li>'+
+          '<li><strong>最后再看现实门槛：</strong>对感兴趣的岗位继续核对专业技能、学历/证书、行业机会、收入区间和生活方式，再决定是否投入。</li>'+
+          '</ul>';
+        var plan=$('developmentList'); plan.innerHTML='';
+        developmentPlan(scores).forEach(function(item){
+          var div=document.createElement('div'); div.className='development-item'; div.innerHTML='<div><strong>'+item[0]+'</strong><p>'+item[1]+'</p></div>'; plan.appendChild(div);
+        });
+        var quality=qualityMessage(state.answers);
+        $('qualityBox').innerHTML='<span class="quality-mark">i</span><div><strong>怎样使用这份结果</strong><br>'+quality[1]+' 生活阶段、角色和近期状态发生变化时，分数也可能改变；更值得关注的是反复出现的行为模式。本结果用于自我探索，不是临床诊断或职业决定。</div>';
+      }
+      function copySummary(){
+        var traitText = Array.prototype.map.call(document.querySelectorAll('.trait-row'), function(row){
+          var label = row.querySelector('.trait-label strong');
+          var value = row.querySelector('.trait-value');
+          return label && value ? label.textContent + '：' + value.textContent : '';
+        }).filter(Boolean).join('，');
+        var text = $('reportTitle').textContent + '\n' + $('reportSummary').textContent + '\n大五人格：' + traitText + '\n说明：本结果用于自我探索，不是临床诊断或职业决定。';
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function(){ showToast('摘要已复制'); }).catch(function(){ fallbackCopy(text); });
+        else fallbackCopy(text);
+      }
+      function fallbackCopy(text){
+        var t=document.createElement('textarea'); t.value=text; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); showToast('摘要已复制');
+      }
+      function validateData(){
+        var per={E:0,A:0,C:0,S:0,O:0}; questions.forEach(function(q){ per[q.dim]++; });
+        var allTen=Object.keys(per).every(function(k){ return per[k]===10; });
+        var pos=questions.filter(function(q){ return q.key===1; }).length;
+        var neg=questions.filter(function(q){ return q.key===-1; }).length;
+        var lowAnswers=questions.map(function(q){ return q.key===1 ? 1 : 5; });
+        var highAnswers=questions.map(function(q){ return q.key===1 ? 5 : 1; });
+        var low=scoreAnswers(lowAnswers);
+        var high=scoreAnswers(highAnswers);
+        return {questionCount:questions.length, dimensionCounts:per, allDimensionsTen:allTen, positiveItems:pos, reverseItems:neg, lowPattern:low, highPattern:high};
+      }
+
+      $('startBtn').addEventListener('click', function(){ route('quiz'); });
+      $('prevBtn').addEventListener('click', function(){ cancelAutoAdvance(); if(state.current>0){state.current--;save();renderQuiz();} });
+      $('printBtn').addEventListener('click', function(){ window.print(); });
+      $('copyBtn').addEventListener('click', copySummary);
+      $('restartBtn').addEventListener('click', function(){ cancelAutoAdvance(); localStorage.removeItem(STORAGE_KEY); state={current:0,answers:new Array(50).fill(null)}; route('home'); showToast('已清除本次答案'); });
+      document.addEventListener('keydown', function(e){
+        if (!$('quizView').classList.contains('active')) return;
+        var keyMap = {'1':5,'2':4,'3':3,'4':2,'5':1};
+        if (keyMap[e.key]) selectAnswer(keyMap[e.key]);
+        if (e.key==='ArrowLeft' && state.current>0) { cancelAutoAdvance(); state.current--;save();renderQuiz(); }
+        if (e.key==='ArrowRight') { cancelAutoAdvance(); nextQuestion(); }
+      });
+      window.addEventListener('hashchange', function(){
+        var name=location.hash.replace('#','');
+        if(['home','quiz','report'].indexOf(name)>=0) route(name);
+      });
+      window.PersonalityCompassTest = { questions:questions, scoreAnswers:scoreAnswers, scoreAbilityDims:scoreAbilityDims, matchJobs:matchJobs, abilityDims:abilityDims, validateData:validateData };
+      load();
+      var initial=location.hash.replace('#','');
+      if(initial==='report' && answeredCount()!==50) initial='quiz';
+      route(['home','quiz','report'].indexOf(initial)>=0?initial:'home');
+    } catch (e) {
+      console.error(e);
+      document.body.innerHTML = '<main style="font-family:sans-serif;padding:32px;max-width:720px;margin:auto"><h1>页面加载失败</h1><p>请刷新页面重试；如果问题持续存在，请重新下载文件。</p></main>';
+    }
+  })();
+  </script>
+</body>
+</html>
