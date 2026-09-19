@@ -135,11 +135,9 @@
     .report-hero .eyebrow { color: var(--lime); }
     .report-hero h1 { font-size: clamp(40px, 6vw, 70px); max-width: 800px; margin-bottom: 18px; }
     .report-hero p { max-width: 720px; color: #d6e2dc; font-size: 17px; }
-    .report-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; position: relative; z-index: 2; }
-    .report-actions .btn { border-color: rgba(255,255,255,.52); color: white; background: transparent; }
-    .report-actions .btn:hover { background: rgba(255,255,255,.10); }
-    .report-actions .btn-primary { background: white; color: var(--forest); }
-    .report-actions .btn-primary:hover { background: #f3f7f4; }
+    .report-actions { display: flex; align-items: center; margin-top: 20px; position: relative; z-index: 2; }
+    .report-actions .restart-link { min-height: 36px; padding: 5px 12px; border: 1px solid rgba(255,255,255,.38); border-radius: 999px; color: #d6e2dc; background: transparent; font-size: 12px; font-weight: 650; }
+    .report-actions .restart-link:hover { color: white; background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.58); }
     .report-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(300px, .8fr); gap: 24px; margin-top: 24px; }
     .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 28px; }
     .panel h2 { font-family: var(--serif); font-size: 30px; margin-bottom: 8px; }
@@ -221,6 +219,19 @@
     .ability-bar-row .bar { flex: 1; height: 6px; }
     .ability-bar-row .bar-fill { background: var(--forest); }
     .ability-bar-row span { font-size: 11px; color: var(--muted); min-width: 28px; text-align: right; }
+    .work-trait-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+    .work-trait-card { border: 1px solid var(--line); border-radius: 18px; padding: 22px; background: var(--surface); position: relative; overflow: hidden; }
+    .work-trait-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--forest); }
+    .work-trait-card.growth::before { background: var(--amber); }
+    .work-trait-badge { display: inline-flex; align-items: center; min-height: 24px; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: .04em; margin-bottom: 10px; }
+    .work-trait-badge.core { background: #e8f3ec; color: var(--forest); }
+    .work-trait-badge.support { background: #eef4f0; color: #4a6b5c; }
+    .work-trait-badge.growth { background: #fdf3e7; color: #9a6b1f; }
+    .work-trait-card h3 { font-size: 20px; margin: 0 0 4px; font-family: var(--serif); }
+    .work-trait-card .work-trait-dim { color: var(--muted); font-size: 12px; margin-bottom: 12px; }
+    .work-trait-card p { color: #4f5d57; font-size: 14px; margin: 0 0 14px; line-height: 1.65; }
+    .work-trait-tip { background: #f7faf8; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; font-size: 13px; color: #46544e; line-height: 1.6; }
+    .work-trait-tip strong { color: var(--forest); display: block; margin-bottom: 3px; font-size: 12px; letter-spacing: .03em; }
     @media (max-width: 900px) {
       .hero-grid, .report-grid { grid-template-columns: 1fr; }
       .compass-wrap { min-height: 390px; }
@@ -384,9 +395,7 @@
           <h1 id="reportTitle">你的个人特质报告</h1>
           <p id="reportSummary"></p>
           <div class="report-actions">
-            <button class="btn btn-primary" id="printBtn">打印 / 存为 PDF</button>
-            <button class="btn" id="copyBtn">复制摘要</button>
-            <button class="btn" id="restartBtn">重新测试</button>
+            <button class="restart-link" id="restartBtn">重新测试</button>
           </div>
         </div>
 
@@ -396,6 +405,12 @@
             <p class="panel-intro">五个分数展示你在本次作答中的相对倾向。它们没有好坏之分，也不是在人群中的排名。</p>
             <div class="trait-list" id="traitList"></div>
             <div id="bigFiveDetail" style="margin-top:20px;"></div>
+          </section>
+
+          <section class="panel full" aria-labelledby="workTraitTitle">
+            <h2 id="workTraitTitle">你的工作人格特质</h2>
+            <p class="panel-intro">从大五倾向中提炼出你在工作场景中较自然的行为模式，以及对应的改进与强化小提醒。</p>
+            <div class="work-trait-grid" id="workTraitGrid"></div>
           </section>
 
           <section class="panel full" aria-labelledby="abilityTitle">
@@ -461,56 +476,56 @@
         { key:'analysis', name:'分析与学习能力', english:'Analysis & Learning', qids:[5,10,20,35,40],   high:'敏于求知', low:'经验导向', desc:'理解抽象概念、快速学习新事物和运用精确语言的能力。' }
       ];
       var questions = [
-        ['我是聚会或集体活动中很活跃的人','E',1],
-        ['我很少关心别人的感受与处境','A',-1],
-        ['我通常会提前做好准备','C',1],
-        ['我很容易感到压力过大','S',-1],
-        ['我拥有丰富的词汇和表达方式','O',1],
-        ['我平时话不多','E',-1],
-        ['我对了解不同的人感兴趣','A',1],
-        ['我常把自己的物品随手乱放','C',-1],
-        ['大多数时候，我能保持放松','S',1],
-        ['我理解抽象概念时常感到困难','O',-1],
-        ['和许多人在一起时，我通常感觉自在','E',1],
-        ['我有时会用尖锐的话伤害别人','A',-1],
-        ['我会留意事情的细节','C',1],
-        ['我经常为各种事情担心','S',-1],
-        ['我有生动的想象力','O',1],
-        ['我更愿意待在不显眼的位置','E',-1],
-        ['我能体会并关心他人的感受','A',1],
-        ['我常把事情弄得杂乱无章','C',-1],
-        ['我很少陷入低落情绪','S',1],
-        ['我对抽象观点不太感兴趣','O',-1],
-        ['我经常主动开启对话','E',1],
-        ['别人的问题通常不会引起我的兴趣','A',-1],
-        ['该做的日常任务，我通常会尽快完成','C',1],
-        ['外界的小事很容易扰乱我的状态','S',-1],
-        ['我常能提出有价值的新点子','O',1],
-        ['我经常觉得自己没什么可说的','E',-1],
-        ['我容易对别人产生同情与怜惜','A',1],
-        ['我经常忘记把东西放回原处','C',-1],
-        ['我很容易感到不安或沮丧','S',-1],
-        ['我的想象力不算丰富','O',-1],
-        ['在聚会中，我会和许多不同的人交谈','E',1],
-        ['我对他人本身没有太大兴趣','A',-1],
-        ['我喜欢秩序井然','C',1],
-        ['我的心情变化比较频繁','S',-1],
-        ['我通常能很快理解新事物','O',1],
-        ['我不喜欢成为别人注意的焦点','E',-1],
-        ['我愿意为别人腾出时间','A',1],
-        ['我有时会逃避自己应尽的责任','C',-1],
-        ['我的情绪常有明显起伏','S',-1],
-        ['我会使用较复杂或精确的词语','O',1],
-        ['我不介意成为关注的中心','E',1],
-        ['我能感受到别人的情绪变化','A',1],
-        ['我通常会按照计划行事','C',1],
-        ['我很容易感到烦躁','S',-1],
-        ['我会花时间反思事情的意义','O',1],
-        ['面对陌生人时，我通常比较安静','E',-1],
-        ['我能让身边的人感到放松自在','A',1],
-        ['我对自己的工作质量要求严格','C',1],
-        ['我经常感到低落','S',-1],
-        ['我的脑海里常常充满想法','O',1]
+        ['朋友组了一个局，一半人你不认识。到场后你更可能主动找陌生人搭话，而不是只待在熟人旁边。','E',1],
+        ['发现同事在背后议论你，你觉得直接找他对质比假装不知道更痛快。','A',-1],
+        ['出门旅行前，你通常会把行程、住宿和交通都提前定好，而不是到了再说。','C',1],
+        ['截止日期临近且事情堆在一起时，你很容易感到心里发慌或手心出汗。','S',-1],
+        ['遇到一个新概念时，你会忍不住想搞清楚它背后的原理，而不是只知道怎么用。','O',1],
+        ['一群人聊天时，你更愿意听别人说，自己很少主动抢话。','E',-1],
+        ['同事说他最近忙不过来，你会自然地问"需要我帮什么"，即使你自己也不算闲。','A',1],
+        ['你的桌面或手机桌面经常是想到什么放什么，不太会刻意整理分类。','C',-1],
+        ['临时被通知要在会上发言，你通常能较快调整过来，而不是脑子一片空白。','S',1],
+        ['读那些充满抽象概念和理论的文章时，你常常觉得枯燥，很难坚持读完。','O',-1],
+        ['到了一个新环境（新公司、新社团），你通常会在头几天就主动认识好几个人。','E',1],
+        ['你会主动记住朋友或同事的一些小事——比如谁对什么过敏、谁最近在备考。','A',1],
+        ['交给你的任务，你通常会盯到最后一个细节都没问题才算完。','C',1],
+        ['领导临时给你加了一个紧急任务，而你手上已经满了，你会越想越焦虑，甚至影响手上的工作。','S',-1],
+        ['如果可以拥有一种超能力，你会选一个能让你探索未知世界的（比如瞬间移动），而不是让你更高效完成现有任务的。','O',1],
+        ['拍照或拍视频时，你更愿意站在镜头后面，而不是成为被拍的主角。','E',-1],
+        ['朋友跟你说一件事时，你通常能从他的语气和停顿里，听出他没说出口的情绪。','A',1],
+        ['你经常是到了最后一刻才开始收拾行李或准备材料，而且觉得这样效率反而高。','C',-1],
+        ['即使遇到不太顺心的事，你通常睡一觉起来就好多了，不会持续低落很久。','S',1],
+        ['你更愿意别人直接告诉你"怎么做"，而不是花时间理解"为什么要这么做"。','O',-1],
+        ['在等咖啡或排队的时候，如果旁边的人看起来很友善，你可能会随口聊几句。','E',1],
+        ['开会时有人提出一个你觉得明显有问题的方案，你会当场指出来，哪怕会让对方下不来台。','A',-1],
+        ['你答应别人的事基本都会做到；如果做不到，你会提前说而不是拖着。','C',1],
+        ['项目出了问题大家都在找原因，你会忍不住想"是不是我的错"，即使其实不是。','S',-1],
+        ['假设你被困在一个荒岛上一周，你更可能花时间观察周围、想象各种可能性，而不是只专注于找食物和水。','O',1],
+        ['公司年会上被点名上台表演或发言，你第一反应是想办法推掉。','E',-1],
+        ['开会时如果有人说了一个不太成熟的想法被大家笑，你会注意到那个人的尴尬，并想办法圆一下。','A',1],
+        ['你做计划常常只写个大概，具体到哪一步怎么做，你更喜欢边走边看。','C',-1],
+        ['你的心情很容易受天气、音乐或别人一句无心的话影响，起伏比较明显。','S',-1],
+        ['看电影或小说时，你更喜欢基于真实事件的故事，而不是充满奇幻设定的虚构世界。','O',-1],
+        ['你手机里的联系人，大多是你主动加的，而不是别人加了你你才通过。','E',1],
+        ['同事把他的锅甩给你时，你觉得先把自己撇清比照顾他的面子更重要。','A',-1],
+        ['开始一个新项目前，你习惯先列个清单或画个流程图，把步骤理清楚再动手。','C',1],
+        ['你有时会因为一件小事没做好，就一整天都觉得自己"什么都不行"。','S',-1],
+        ['你喜欢把复杂的事情拆成几个部分来理解，搞清楚它们之间的关系。','O',1],
+        ['开会时你有不同意见，但你通常会等散会后私下跟领导说，而不是在会上直接讲。','E',-1],
+        ['看到同事加班到很晚，你会主动问要不要帮忙带份饭或者分担一点。','A',1],
+        ['周报这种例行公事，你经常是到了截止时间才匆匆写几笔交差。','C',-1],
+        ['你很容易因为别人的一句批评而难过很久，即使你知道对方说的不一定对。','S',-1],
+        ['学一个新工具或新技能时，你通常会先看说明书或教程，搞懂基本原理再上手。','O',1],
+        ['在团队讨论中，你不介意第一个发言，哪怕你的想法还没完全成熟。','E',1],
+        ['你能感觉到身边人什么时候状态不对，即使他嘴上说"没事"。','A',1],
+        ['你对自己交出去的东西有质量要求，错别字、格式乱这种事你会尽量避免。','C',1],
+        ['遇到突发状况（比如计划被打乱、东西丢了），你第一反应往往是焦虑而不是立刻想办法。','S',-1],
+        ['你有时会把自己代入一个完全不同的身份（比如古代人、外星人），想象那样的生活会是什么样。','O',1],
+        ['参加活动时，你更倾向于到处走动和不同的人聊，而不是固定在一个小圈子里。','E',1],
+        ['别人跟你倾诉时，你通常会先听他说完，而不是急着给建议或评判。','A',1],
+        ['你负责的事情，即使没人检查，你也会按标准做完，不会偷懒。','C',1],
+        ['你经常会在睡前回想今天说过的话、做过的事，然后越想越睡不着。','S',-1],
+        ['你觉得一个好的想法，往往来自把两个看起来不相关的东西联系在一起。','O',1]
       ].map(function(q, i){ return { id: i + 1, text: q[0], dim: q[1], key: q[2] }; });
       var answerOptions = [
         { label: '非常符合', value: 5, hint: '几乎总是如此' },
@@ -771,6 +786,42 @@
         creativity:{ high:'你的脑海里经常充满想法，容易在看似不相关的事物之间发现连接。这种创造力是创新和解决复杂问题的核心燃料。要留意：想法多不等于完成多，最有价值的创意往往需要被"约束"才能落地。可以给自己设一个规则：每个新想法先写下来，48小时后再决定是否投入，避免频繁切换。', low:'你更信任经过验证的方法和具体经验，不太会为了"创新"而创新。这种务实性在执行和落地阶段非常宝贵——很多好想法就是死在"不够务实"上。可以尝试的小练习：每周选一个日常工作流程，问自己"如果只能改一个地方，我改哪里"，不需要颠覆性创新，小改进累积起来就是大变化。' },
         analysis: { high:'你喜欢理解事物的底层逻辑，学习新东西的速度比较快，也能运用比较精确的语言表达。这种分析能力在研究、策略和复杂决策中是核心优势。要留意：不要让"理解了"代替"行动了"，分析的价值在于指导决策，设一个"分析截止时间"会让你更高效。', low:'你更依赖实践经验和直觉判断，在"做"中学习比在"想"中学习更有效。这种动手能力在很多场景中比纯分析更有价值。可以尝试的是：遇到新概念时，先找一个具体的小例子来理解，而不是从定义开始——比如学一个新工具，先照着教程做一遍，再回头看原理。' }
       };
+      var workTraitMap = {
+        E: {
+          high: { name:'社交引擎', desc:'你在团队中自然地发起连接、推动讨论，跨部门协作和对外沟通对你来说不是消耗而是充电。适合需要主动拓展资源、组织协调和对外表达的角色。', tip:'主动社交的同时，给安静的同事留出表达空间；深度倾听比高频互动更能建立信任。尝试在会议中先邀请最沉默的人发言。' },
+          low:  { name:'深度专注者', desc:'你在独立工作和深度思考中更有产出，适合需要长时间专注、独立交付和审慎判断的角色。你的贡献往往在质量而非数量。', tip:'重要场合提前准备2-3个要点，在讨论早期就抛出来，不需要等"完全想好"。把"主动表达"当成可以练的小肌肉。' }
+        },
+        A: {
+          high: { name:'关系粘合剂', desc:'你关注团队氛围和他人感受，冲突中是天然的调停者，容易让同事愿意把真实情况告诉你。在服务、教育和长期协作类工作中是核心优势。', tip:'不要把"被需要"等同于"有价值"；每次答应别人之前给自己设一个24小时缓冲，学会在适当的时候说不，才能持续地给予。' },
+          low:  { name:'直言推动者', desc:'你敢于指出问题、坚持标准，在谈判、评审和绩效沟通中立场清晰，不容易被情绪绑架。团队需要有人做艰难取舍时，你往往是合适的人选。', tip:'把观点和人的价值分开。忍不住要顶回去时，先把句子拆成"事实+我的判断+我希望"三段再说，让直言更有影响力。' }
+        },
+        C: {
+          high: { name:'稳定交付者', desc:'你做事可靠、关注细节，答应的事通常会兑现，是团队里可以把复杂项目托付的人。长期目标拆解能力强，能把宏大愿望翻译成每天的小动作。', tip:'不要让"把事做好"变成"什么都自己扛"。给自己设一个"完成即停"规则：到了约定时间就交当前版本，用一周一次的小复盘代替无止境的打磨。' },
+          low:  { name:'灵活应变者', desc:'你不被流程束缚，在变化快、自由度高的环境中更舒展，擅长临场判断和快速调整方向。对权威和规则不钻牛角尖，愿意在必要时找变通。', tip:'为反复出现的任务建立一个"最小检查清单"（3-5项就够），不需要变成严格流程，只是减少低级失误。每天早上花3分钟写下今天最重要的一件事。' }
+        },
+        S: {
+          high: { name:'压舱石', desc:'你在压力和不确定性中相对从容，危机处理时是同事最想求助的人，决策较少被恐慌驱动。在高压、高负荷岗位下能保持稳定输出。', tip:'从容不等于不需要恢复。把恢复写进日程——比如每天固定20分钟无屏幕时间，避免长期高负荷下的"我没事"变成延迟崩溃。' },
+          low:  { name:'风险预警器', desc:'你对风险和人际氛围的信号比较敏锐，往往是团队里最早嗅到"哪里不对劲"的人。情绪细腻、记忆细节丰富，在需要感受力的工作里常有独特产出。', tip:'把担心的事写下来，分成"我能控制的"和"我控制不了的"，只对前者制定行动。情绪上头时启动一个固定小动作（喝口水、走5分钟），给情绪10分钟缓冲。' }
+        },
+        O: {
+          high: { name:'概念发电机', desc:'你容易在看似不相关的事物之间发现连接，学习新领域快，适合需要创新和复杂问题解决的场景。是团队里能提出多种可能性的人。', tip:'想法多不等于完成多。给每个新想法设一个"48小时冷却+一句落地条件"：想到点子先记下来，三天后再问"第一步具体做什么"。' },
+          low:  { name:'务实落地者', desc:'你更信任经过验证的方法和具体经验，决策时不被新奇感牵着走，是流程和标准的可靠维护者。很多好想法就是死在"不够务实"上，而你能补上这一环。', tip:'每周选一个日常工作流程，问自己"如果只能改一个地方，我改哪里"。不需要颠覆性创新，小改进累积起来就是大变化。' }
+        }
+      };
+      function workTraits(scores){
+        var sorted = Object.keys(scores).sort(function(a,b){ return scores[b]-scores[a]; });
+        var items = [];
+        var top1 = sorted[0], top2 = sorted[1], bottom = sorted[4];
+        function pick(k, role){
+          var isHigh = scores[k] >= 50;
+          var t = workTraitMap[k][isHigh ? 'high' : 'low'];
+          return { dim:k, score:scores[k], pole:isHigh?'high':'low', role:role, name:t.name, desc:t.desc, tip:t.tip };
+        }
+        items.push(pick(top1, 'core'));
+        items.push(pick(top2, 'support'));
+        items.push(pick(bottom, 'growth'));
+        return items;
+      }
       function renderRadarChart(scores, containerId){
         var container = $(containerId);
         if (!container) return;
@@ -981,6 +1032,18 @@
             '<p style="color:#4f5d57;font-size:13px;margin:0;"><strong style="color:var(--ink);">可以试试：</strong>'+d.advice.join(' ')+'</p>';
           bfDetail.appendChild(div);
         });
+        var wtGrid = $('workTraitGrid'); wtGrid.innerHTML='';
+        workTraits(scores).forEach(function(item){
+          var roleLabel = item.role==='core' ? '核心特质' : (item.role==='support' ? '辅助特质' : '成长支点');
+          var card = document.createElement('div');
+          card.className = 'work-trait-card' + (item.role==='growth' ? ' growth' : '');
+          card.innerHTML = '<span class="work-trait-badge '+item.role+'">'+roleLabel+' · '+dims[item.dim].name+' '+item.score+'分</span>'+
+            '<h3>'+item.name+'</h3>'+
+            '<div class="work-trait-dim">'+dims[item.dim].english+' · '+(item.pole==='high'?dims[item.dim].high:dims[item.dim].low)+'倾向</div>'+
+            '<p>'+item.desc+'</p>'+
+            '<div class="work-trait-tip"><strong>小提醒</strong>'+item.tip+'</div>';
+          wtGrid.appendChild(card);
+        });
         renderRadarChart(abilityScores, 'radarChart');
         var abilityGrid = $('abilityGrid'); abilityGrid.innerHTML='';
         abilityAnalysis(abilityScores).forEach(function(item){
@@ -1044,19 +1107,6 @@
         var quality=qualityMessage(state.answers);
         $('qualityBox').innerHTML='<span class="quality-mark">i</span><div><strong>怎样使用这份结果</strong><br>'+quality[1]+' 生活阶段、角色和近期状态发生变化时，分数也可能改变；更值得关注的是反复出现的行为模式。本结果用于自我探索，不是临床诊断或职业决定。</div>';
       }
-      function copySummary(){
-        var traitText = Array.prototype.map.call(document.querySelectorAll('.trait-row'), function(row){
-          var label = row.querySelector('.trait-label strong');
-          var value = row.querySelector('.trait-value');
-          return label && value ? label.textContent + '：' + value.textContent : '';
-        }).filter(Boolean).join('，');
-        var text = $('reportTitle').textContent + '\n' + $('reportSummary').textContent + '\n大五人格：' + traitText + '\n说明：本结果用于自我探索，不是临床诊断或职业决定。';
-        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function(){ showToast('摘要已复制'); }).catch(function(){ fallbackCopy(text); });
-        else fallbackCopy(text);
-      }
-      function fallbackCopy(text){
-        var t=document.createElement('textarea'); t.value=text; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); showToast('摘要已复制');
-      }
       function validateData(){
         var per={E:0,A:0,C:0,S:0,O:0}; questions.forEach(function(q){ per[q.dim]++; });
         var allTen=Object.keys(per).every(function(k){ return per[k]===10; });
@@ -1071,8 +1121,6 @@
 
       $('startBtn').addEventListener('click', function(){ route('quiz'); });
       $('prevBtn').addEventListener('click', function(){ cancelAutoAdvance(); if(state.current>0){state.current--;save();renderQuiz();} });
-      $('printBtn').addEventListener('click', function(){ window.print(); });
-      $('copyBtn').addEventListener('click', copySummary);
       $('restartBtn').addEventListener('click', function(){ cancelAutoAdvance(); localStorage.removeItem(STORAGE_KEY); state={current:0,answers:new Array(50).fill(null)}; route('home'); showToast('已清除本次答案'); });
       document.addEventListener('keydown', function(e){
         if (!$('quizView').classList.contains('active')) return;
